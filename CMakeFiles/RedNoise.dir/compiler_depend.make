@@ -4633,8 +4633,51 @@ CMakeFiles/RedNoise.dir/src/RedNoise.cpp.o: src/RedNoise.cpp \
   libs/glm-0.9.7.2/glm/vector_relational.hpp \
   libs/glm-0.9.7.2/glm/integer.hpp \
   libs/glm-0.9.7.2/glm/detail/func_integer.hpp \
-  libs/glm-0.9.7.2/glm/detail/func_integer.inl
+  libs/glm-0.9.7.2/glm/detail/func_integer.inl \
+  libs/glm-0.9.7.2/glm/gtx/string_cast.hpp \
+  libs/glm-0.9.7.2/glm/glm.hpp \
+  libs/glm-0.9.7.2/glm/gtc/type_precision.hpp \
+  libs/glm-0.9.7.2/glm/gtc/quaternion.hpp \
+  libs/glm-0.9.7.2/glm/mat3x3.hpp \
+  libs/glm-0.9.7.2/glm/mat4x4.hpp \
+  libs/glm-0.9.7.2/glm/vec3.hpp \
+  libs/glm-0.9.7.2/glm/vec4.hpp \
+  libs/glm-0.9.7.2/glm/gtc/constants.hpp \
+  libs/glm-0.9.7.2/glm/detail/setup.hpp \
+  libs/glm-0.9.7.2/glm/gtc/constants.inl \
+  libs/glm-0.9.7.2/glm/gtc/quaternion.inl \
+  libs/glm-0.9.7.2/glm/trigonometric.hpp \
+  libs/glm-0.9.7.2/glm/geometric.hpp \
+  libs/glm-0.9.7.2/glm/exponential.hpp \
+  libs/glm-0.9.7.2/glm/gtc/vec1.hpp \
+  libs/glm-0.9.7.2/glm/glm.hpp \
+  libs/glm-0.9.7.2/glm/detail/type_vec1.hpp \
+  libs/glm-0.9.7.2/glm/gtc/vec1.inl \
+  libs/glm-0.9.7.2/glm/vec2.hpp \
+  libs/glm-0.9.7.2/glm/mat2x2.hpp \
+  libs/glm-0.9.7.2/glm/mat2x3.hpp \
+  libs/glm-0.9.7.2/glm/mat2x4.hpp \
+  libs/glm-0.9.7.2/glm/mat3x2.hpp \
+  libs/glm-0.9.7.2/glm/mat3x4.hpp \
+  libs/glm-0.9.7.2/glm/mat4x2.hpp \
+  libs/glm-0.9.7.2/glm/mat4x3.hpp \
+  libs/glm-0.9.7.2/glm/gtc/type_precision.inl \
+  libs/glm-0.9.7.2/glm/gtc/quaternion.hpp \
+  libs/glm-0.9.7.2/glm/gtx/dual_quaternion.hpp \
+  libs/glm-0.9.7.2/glm/gtc/constants.hpp \
+  libs/glm-0.9.7.2/glm/gtx/dual_quaternion.inl \
+  libs/glm-0.9.7.2/glm/geometric.hpp \
+  libs/glm-0.9.7.2/glm/gtx/string_cast.inl \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdarg
 
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdarg:
+
+libs/glm-0.9.7.2/glm/gtx/dual_quaternion.hpp:
+
+libs/glm-0.9.7.2/glm/gtc/constants.hpp:
+
+libs/glm-0.9.7.2/glm/gtc/quaternion.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/sstream:
 
@@ -4675,6 +4718,8 @@ libs/glm-0.9.7.2/glm/detail/_vectorize.hpp:
 libs/glm-0.9.7.2/glm/detail/func_trigonometric.inl:
 
 libs/glm-0.9.7.2/glm/detail/type_mat4x4.inl:
+
+libs/glm-0.9.7.2/glm/gtc/type_precision.hpp:
 
 libs/glm-0.9.7.2/glm/detail/type_mat4x4.hpp:
 
@@ -4850,6 +4895,8 @@ libs/sdw/CanvasTriangle.cpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_gid_t.h:
 
+libs/glm-0.9.7.2/glm/gtc/quaternion.inl:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_blksize_t.h:
 
 libs/glm-0.9.7.2/glm/detail/func_matrix.inl:
@@ -5022,6 +5069,8 @@ libs/sdw/CanvasTriangle.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/move_backward.h:
 
+libs/glm-0.9.7.2/glm/gtc/vec1.inl:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/min.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/includes.h:
@@ -5050,9 +5099,13 @@ libs/glm-0.9.7.2/glm/detail/func_common.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/find.h:
 
+libs/glm-0.9.7.2/glm/gtc/type_precision.inl:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/fill.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/fill_n.h:
+
+libs/glm-0.9.7.2/glm/gtx/string_cast.inl:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_key_t.h:
 
@@ -5142,6 +5195,8 @@ libs/glm-0.9.7.2/glm/vector_relational.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/partition_copy.h:
 
+libs/glm-0.9.7.2/glm/gtc/vec1.hpp:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__tuple:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/front_insert_iterator.h:
@@ -5171,6 +5226,8 @@ libs/glm-0.9.7.2/glm/vector_relational.hpp:
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/sys/wait.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/xlocale/_ctype.h:
+
+libs/glm-0.9.7.2/glm/gtx/string_cast.hpp:
 
 libs/glm-0.9.7.2/glm/detail/precision.hpp:
 
@@ -5237,6 +5294,8 @@ libs/glm-0.9.7.2/glm/vec3.hpp:
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__split_buffer:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/pthread/sched.h:
+
+libs/glm-0.9.7.2/glm/gtc/constants.inl:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdint:
 
@@ -5639,6 +5698,8 @@ libs/glm-0.9.7.2/glm/mat2x4.hpp:
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/ostreambuf_iterator.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/stdio.h:
+
+libs/glm-0.9.7.2/glm/gtx/dual_quaternion.inl:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/copy.h:
 

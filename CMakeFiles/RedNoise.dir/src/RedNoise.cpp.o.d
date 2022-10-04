@@ -581,4 +581,39 @@ CMakeFiles/RedNoise.dir/src/RedNoise.cpp.o: \
   /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/vector_relational.hpp \
   /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/integer.hpp \
   /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/detail/func_integer.hpp \
-  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/detail/func_integer.inl
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/detail/func_integer.inl \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/string_cast.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../glm.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/type_precision.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../gtc/quaternion.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../mat3x3.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../mat4x4.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../vec3.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../vec4.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../gtc/constants.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../detail/setup.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/constants.inl \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/quaternion.inl \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../trigonometric.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../geometric.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../exponential.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../gtc/vec1.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../glm.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../detail/type_vec1.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/vec1.inl \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../vec2.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../mat2x2.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../mat2x3.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../mat2x4.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../mat3x2.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../mat3x4.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../mat4x2.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/../mat4x3.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/type_precision.inl \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/quaternion.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtx/dual_quaternion.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../gtc/constants.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/dual_quaternion.inl \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/../geometric.hpp \
+  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/gtx/string_cast.inl \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdarg
