@@ -4668,7 +4668,9 @@ CMakeFiles/RedNoise.dir/src/RedNoise.cpp.o: src/RedNoise.cpp \
   libs/glm-0.9.7.2/glm/gtx/dual_quaternion.inl \
   libs/glm-0.9.7.2/glm/geometric.hpp \
   libs/glm-0.9.7.2/glm/gtx/string_cast.inl \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdarg
+  /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdarg \
+  libs/sdw/Colour.h \
+  libs/sdw/TextureMap.h
 
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdarg:
