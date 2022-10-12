@@ -9,7 +9,7 @@
 #include <Colour.h>
 #include <CanvasTriangle.h>
 #include "TextureMap.h"
-
+#include <stdint.h>
 
 
 
@@ -67,6 +67,17 @@ void greyScaleInterpolation(DrawingWindow &window) {
 			window.setPixelColour(x, y, colour);
 		}
 	}
+}
+
+std::vector<glm::vec2> interpolateTwoElementValues(glm::vec2 from,glm::vec2 to, int N){
+	vector<glm::vec2> v;
+	glm::vec2 next = from;
+	glm::vec2 a = (to - from) / (float(N- 1)); 
+	 for (int i = 0; i < N; i++) {
+		v.push_back(next);
+		next = next + a;
+	 }
+	return v;
 }
 
 std::vector<glm::vec3> interpolateThreeElementValues(glm::vec3 from,glm::vec3 to, int N){
@@ -135,76 +146,84 @@ CanvasTriangle strokedTriangles(){
 	return triangle;
 }
 
+//arrange the triangle:
+CanvasTriangle arrangeTriangle(CanvasTriangle triangle){
+	if(triangle.v0().y > triangle.v2().y) swap(triangle.v0(), triangle.v2());
+	if(triangle.v0().y>triangle.v1().y) swap(triangle.v0(), triangle.v1());
+	if(triangle.v1().y > triangle.v2().y) swap(triangle.v1(), triangle.v2());
+	return triangle;
+}
+
+
+unsigned int textureMappercolor(DrawingWindow &window, CanvasTriangle triangle, CanvasPoint point, TextureMap textureMap) {
+	CanvasPoint A = triangle.v0();
+	CanvasPoint B = triangle.v1();
+	CanvasPoint C = triangle.v2();
+	float alpha = (-(point.x-B.x)*(C.y-B.y)+(point.y-B.y)*(C.x-B.x))/(-(A.x-B.x)*(C.y-B.y)+(A.y-B.y)*(C.x-B.x));
+	float beta = (-(point.x-C.x)*(A.y-C.y)+(point.y-C.y)*(A.x-C.x))/(-(B.x-C.x)*(A.y-C.y)+(B.y-C.y)*(A.x-C.x));
+	float gamma = 1-alpha-beta;
+	TexturePoint texture;
+	texture.x = alpha*A.x+beta*B.x+gamma*C.x;
+	texture.y = alpha*A.y+beta*B.y+gamma*C.y;
+	uint32_t c = textureMap.pixels[((texture.y)-1)*(textureMap.width)+(texture.x)];
+	return c;
+	// 求point的重力坐标
+	// 对应到texture的三角里面
+	// 知道对应坐标 定位pixel colour
+	// return 颜色
+}
+
+void textureMapper(DrawingWindow &window, CanvasTriangle triangle, TextureMap textureMap){
+	CanvasTriangle arranged = arrangeTriangle(triangle);
+	CanvasPoint top = arranged.v0();
+	CanvasPoint bottom = arranged.v2();
+	CanvasPoint mid = arranged.v1();
+	for (int y = top.y; y<mid.y;y++){
+		float x_left = top.x-((top.x-bottom.x)*(y-top.y)/(bottom.y-top.y));
+		float x_right = top.x+((y-top.y)*(mid.x-top.x)/(mid.y-top.y));
+		if (x_left > x_right) std::swap(x_left,x_right);
+		for(int x=x_left; x<x_right; x++) {
+			uint32_t c = textureMappercolor(window,arranged,CanvasPoint(x,y),textureMap);
+			window.setPixelColour(x,y,c);
+		}
+	}
+		for (int y=mid.y; y<bottom.y;y++){
+		float x_left = top.x-((top.x-bottom.x)*(y-top.y)/(bottom.y-top.y));
+		float x_right = mid.x-((y-mid.y)*(mid.x-bottom.x)/(bottom.y-mid.y));
+		if (x_left > x_right) std::swap(x_left,x_right);
+		for(int x=x_left; x<x_right; x++){
+			uint32_t c = textureMappercolor(window,arranged,CanvasPoint(x,y),textureMap);
+			window.setPixelColour(x,y,c);
+		}
+	}
+}
+
+
 
 void filledtriangle(DrawingWindow &window,CanvasTriangle triangle, Colour colour){
-	CanvasPoint top = triangle.vertices[0];
-	CanvasPoint bottom = triangle.vertices[1];
-	CanvasPoint mid = triangle.vertices[2];
+	CanvasTriangle arranged = arrangeTriangle(triangle);
+	CanvasPoint top = arranged.v0();
+	CanvasPoint bottom = arranged.v2();
+	CanvasPoint mid = arranged.v1();
 	//set color
 	float red = colour.red;
 	float green = colour.green;
 	float blue = colour.blue;
 	uint32_t color = (255 << 24) + (int(red) << 16) + (int(green) << 8) + int(blue);
 	//points fromup to down
-	if(top.y > bottom.y) swap(top, bottom);
-	if(top.y > mid.y) swap(top, mid);
-	if(mid.y > bottom.y) swap(mid, bottom);
-	float totalHeight_diff = bottom.y - top.y;
-	for(int y = top.y; y<mid.y; y++){
-		CanvasPoint c1 , c2;
-		c1.y = c2.y = y;
-		float segmentHeight_diff = mid.y - top.y;
-		//float totalStepSize = (y - top.y)/totalHeight_diff;
-		//float segmentStepsize = (y - top.y)/segmentHeight_diff;
-		//find every y's x point. 
-		c1.x = top.x + ((y-top.y)/totalHeight_diff)*(bottom.x-top.x);
-		c2.x = top.x + ((y-top.y)/(segmentHeight_diff))*(mid.x-top.x);
-		//set c1 in the left
-		if (c1.x>c2.x) std::swap(c1.x, c2.x);
-		for(int x = c1.x; x<c2.x; x++){
-		window.setPixelColour(round(x), round(y), color);
-		}
+	for (int y = top.y; y<mid.y;y++){
+		float x_left = top.x-((top.x-bottom.x)*(y-top.y)/(bottom.y-top.y));
+		float x_right = top.x+((y-top.y)*(mid.x-top.x)/(mid.y-top.y));
+		if (x_left > x_right) std::swap(x_left,x_right);
+		for(int x=x_left; x<x_right; x++) window.setPixelColour(x,y,color);
 	}
-	for(int y = mid.y; y<bottom.y; y++){
-		CanvasPoint c3 , c4;
-		c3.y = c4.y = y;
-		float segmentHeight_diff = bottom.y - mid.y;
-		//find every y's x point. 
-		c3.x = top.x + ((y-top.y)/totalHeight_diff)*(bottom.x-top.x);
-		c4.x = mid.x - ((y-mid.y)/(segmentHeight_diff))*(mid.x-bottom.x);
-		if (c3.x>c4.x) std::swap(c3.x, c4.x);
-		for(int x = c3.x; x<c4.x; x++){
-		window.setPixelColour(round(x), round(y), color);
-		}
+	for (int y=mid.y; y<bottom.y;y++){
+		float x_left = top.x-((top.x-bottom.x)*(y-top.y)/(bottom.y-top.y));
+		float x_right = mid.x-((y-mid.y)*(mid.x-bottom.x)/(bottom.y-mid.y));
+		if (x_left > x_right) std::swap(x_left,x_right);
+		for(int x=x_left; x<x_right; x++) window.setPixelColour(x,y,color);
 	}
 }
-
-//  void texturedTriangle(DrawingWindow &window, TextureMap file, CanvasPoint p0, CanvasPoint p1, CanvasPoint p2, Colour colour){
-// 	//平移量
-// 	float z0,z1,z2
-// 	//matUV = matXYZ * matT  
-// 	//matT = matIXYZ * matUV  (matIXYZ is inverse) 
-// 	//(u0,v0)->(x0,y0)
-//  	float x0 = p0.x;
-// 	float y0 = p0.y;
-// 	float u0 = p0.texturePoint.y;
-// 	float v0 = p0.texturePoint.x;
-//     //(u1,v1)->(x1,y1)
-// 	float x1 = p1.x;
-// 	float y1 = p1.y;
-// 	float u1 = p1.texturePoint.y;
-// 	float v1 = p1.texturePoint.x;
-//     //(u2,v2)->(x2,y2)
-// 	float x2 = p2.x;
-// 	float y2 = p2.y;
-// 	float u2 = p2.texturePoint.y;
-// 	float v2 = p2.texturePoint.x;
-// 	int width = file.width;
-// 	int height = file.height;
-// 	float uvmat[3*3]= { u0, v0, 1.0f, u1, v1, 1.0f, u2, v2, 1.0f };
-// 	float xyzmat[3*3]={x0, y0, z0, x1, y1, z1, x2, y2, z2};
-//  }
-
 
 
 
@@ -226,6 +245,7 @@ int main(int argc, char *argv[]) {
 	float width = window.width;
 	SDL_Event event;
 	char c;
+	CanvasTriangle canvas = {{160,10},{300,230},{10,150}};
 	while (true) {
 		// We MUST poll for events - otherwise the window will freeze !
 		if (window.pollForInputEvents(event)) {
@@ -251,10 +271,10 @@ int main(int argc, char *argv[]) {
 					  lineDraw(window,triangle.v2(),triangle.v0(),{255,255,255});
 				}
 			}
-		
 		}
 		TextureMap file = TextureMap("texture.ppm");
-		std::cout<<file<<std::endl;
+		textureMapper(window,canvas,file);
+		//std::cout<<file<<std::endl;
 		//draw(window);
 		//week02 task 3
 		//greyScaleInterpolation(window);
