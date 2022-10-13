@@ -30,18 +30,6 @@ void draw(DrawingWindow &window) {
 	}
 }
 
-void handleEvent(SDL_Event event, DrawingWindow &window) {
-	if (event.type == SDL_KEYDOWN) {
-		if (event.key.keysym.sym == SDLK_LEFT) std::cout << "LEFT" << std::endl;
-		else if (event.key.keysym.sym == SDLK_RIGHT) std::cout << "RIGHT" << std::endl;
-		else if (event.key.keysym.sym == SDLK_UP) std::cout << "UP" << std::endl;
-		else if (event.key.keysym.sym == SDLK_DOWN) {std::cout << "DOWN" << std::endl;}
-	} else if (event.type == SDL_MOUSEBUTTONDOWN) {
-		window.savePPM("output.ppm");
-		window.saveBMP("output.bmp");
-	}
-}
-
 std::vector<float> interpolateSingleFloats(float from, float to, int N){
 	 vector<float> v;
 	 float next = from;
@@ -146,6 +134,7 @@ CanvasTriangle strokedTriangles(){
 	return triangle;
 }
 
+
 //arrange the triangle:
 CanvasTriangle arrangeTriangle(CanvasTriangle triangle){
 	if(triangle.v0().y > triangle.v2().y) swap(triangle.v0(), triangle.v2());
@@ -162,15 +151,50 @@ unsigned int textureMappercolor(DrawingWindow &window, CanvasTriangle triangle, 
 	float alpha = (-(point.x-B.x)*(C.y-B.y)+(point.y-B.y)*(C.x-B.x))/(-(A.x-B.x)*(C.y-B.y)+(A.y-B.y)*(C.x-B.x));
 	float beta = (-(point.x-C.x)*(A.y-C.y)+(point.y-C.y)*(A.x-C.x))/(-(B.x-C.x)*(A.y-C.y)+(B.y-C.y)*(A.x-C.x));
 	float gamma = 1-alpha-beta;
-	TexturePoint texture;
-	texture.x = alpha*A.x+beta*B.x+gamma*C.x;
-	texture.y = alpha*A.y+beta*B.y+gamma*C.y;
-	uint32_t c = textureMap.pixels[((texture.y)-1)*(textureMap.width)+(texture.x)];
-	return c;
+	CanvasPoint texturePoint;
+	texturePoint.x = alpha*A.texturePoint.x+beta*B.texturePoint.x+gamma*C.texturePoint.x;
+	texturePoint.y = alpha*A.texturePoint.y+beta*B.texturePoint.y+gamma*C.texturePoint.y;
+	int index = int(texturePoint.y) * int(textureMap.width) + int(texturePoint.x);
+	uint32_t colour = textureMap.pixels[index - 1];
+	return colour;
 	// 求point的重力坐标
 	// 对应到texture的三角里面
 	// 知道对应坐标 定位pixel colour
 	// return 颜色
+}
+
+glm::mat3x3 affine(CanvasTriangle triangle){
+	float x0,y0,x1,y1,x2,y2,u0,v0,u1,v1,u2,v2;
+	x0 = triangle.v0().x;
+	y0 = triangle.v0().y;
+	x1 = triangle.v1().x;
+	y1 = triangle.v1().y;
+	x2 = triangle.v2().x;
+	y2 = triangle.v2().y;
+	u0 = triangle.v0().texturePoint.x;
+	v0 = triangle.v0().texturePoint.y;
+	u1 = triangle.v1().texturePoint.x;
+	v1 = triangle.v1().texturePoint.y;
+	u2 = triangle.v2().texturePoint.x;
+	v2 = triangle.v2().texturePoint.y;
+	glm::mat3x3 texture = {{u0,u1,u2},{v0,v1,v2},{1,1,1}};
+	glm::mat3x3 oTriangle = {{x0,x1,x2},{y0,y1,y2},{1,1,1}};
+	glm::mat3x3 iTriangle = glm::inverse(oTriangle);
+	glm::mat3x3 affineT = iTriangle * texture;
+	return affineT;
+
+}
+
+unsigned int affineTransformation(DrawingWindow &window, CanvasTriangle triangle, CanvasPoint point, TextureMap textureMap){
+	//inverse of triangle
+	TexturePoint p;
+	glm::mat3x3 canvansP = {{point.x,0,0},{point.y,0,0},{1,0,0}};
+	glm::mat3x3 affineT = affine(triangle);
+	p.x = round((affineT*canvansP)[0][0]);
+	p.y = round((affineT*canvansP)[1][0]);
+	//std::cout<<glm::to_string(affineT)<<std::endl;
+	uint32_t c = textureMap.pixels[((p.y)-1)*(int(textureMap.width))+p.x];
+	return c;
 }
 
 void textureMapper(DrawingWindow &window, CanvasTriangle triangle, TextureMap textureMap){
@@ -178,12 +202,25 @@ void textureMapper(DrawingWindow &window, CanvasTriangle triangle, TextureMap te
 	CanvasPoint top = arranged.v0();
 	CanvasPoint bottom = arranged.v2();
 	CanvasPoint mid = arranged.v1();
+	CanvasPoint ne; 
+	ne.x= top.x+((mid.y-top.y)/(bottom.y-top.y))*(bottom.x-top.x);
+	ne.y = mid.y;
+	vector<glm::vec2> v_left = interpolateTwoElementValues({ne.x,ne.y},{top.x,top.y},(mid.y-top.y));
+	vector<glm::vec2> v_right = interpolateTwoElementValues({mid.x,mid.y},{top.x,top.y},(mid.y-top.y));
+	// for (int i=0;i<(abs(mid.x-ne.x));i++){
+	// 	vector<glm::vec2> v = interpolateTwoElementValues({v_left[i].x,v_left[i].y},{v_right[i].x,v_right[i].y},abs(v_right[i].x-v_left[i].x));
+	// 	for (int j=0;j<(abs(v_right[i].x)-v_left[i].x);i++){
+	// 		uint32_t c = affineTransformation(window,triangle,{v[j].x,v[j].y},textureMap);
+	// 		window.setPixelColour(v[j].x,v[j].y,c);
+	// 	}
+	// }
 	for (int y = top.y; y<mid.y;y++){
 		float x_left = top.x-((top.x-bottom.x)*(y-top.y)/(bottom.y-top.y));
 		float x_right = top.x+((y-top.y)*(mid.x-top.x)/(mid.y-top.y));
 		if (x_left > x_right) std::swap(x_left,x_right);
 		for(int x=x_left; x<x_right; x++) {
 			uint32_t c = textureMappercolor(window,arranged,CanvasPoint(x,y),textureMap);
+			//uint32_t c = affineTransformation(window,arranged,CanvasPoint(x,y),textureMap);
 			window.setPixelColour(x,y,c);
 		}
 	}
@@ -193,6 +230,8 @@ void textureMapper(DrawingWindow &window, CanvasTriangle triangle, TextureMap te
 		if (x_left > x_right) std::swap(x_left,x_right);
 		for(int x=x_left; x<x_right; x++){
 			uint32_t c = textureMappercolor(window,arranged,CanvasPoint(x,y),textureMap);
+			//uint32_t c = affineTransformation(window,arranged,CanvasPoint(x,y),textureMap);
+
 			window.setPixelColour(x,y,c);
 		}
 	}
@@ -226,7 +265,33 @@ void filledtriangle(DrawingWindow &window,CanvasTriangle triangle, Colour colour
 }
 
 
-
+void handleEvent(SDL_Event event, DrawingWindow &window) {
+	if (event.type == SDL_KEYDOWN) {
+		if (event.key.keysym.sym == SDLK_LEFT) std::cout << "LEFT" << std::endl;
+		else if (event.key.keysym.sym == SDLK_RIGHT) std::cout << "RIGHT" << std::endl;
+		else if (event.key.keysym.sym == SDLK_UP) std::cout << "UP" << std::endl;
+		else if (event.key.keysym.sym == SDLK_DOWN) {std::cout << "DOWN" << std::endl;}
+		else if (event.key.keysym.sym == SDLK_u) {
+			CanvasTriangle triangle = strokedTriangles();
+			Colour colour = {rand()%256,rand()%256,rand()%256};
+		    lineDraw(window,triangle.v0(),triangle.v1(),colour);
+			lineDraw(window,triangle.v1(),triangle.v2(),colour);
+			lineDraw(window,triangle.v2(),triangle.v0(),colour);
+		}
+		else if (event.key.keysym.sym == SDLK_f) {
+			CanvasTriangle triangle = strokedTriangles();
+			Colour colour = {rand()%256,rand()%256,rand()%256};
+			filledtriangle(window,triangle,colour);
+			// white edge
+			lineDraw(window,triangle.v0(),triangle.v1(),{255,255,255});
+			lineDraw(window,triangle.v1(),triangle.v2(),{255,255,255});
+			lineDraw(window,triangle.v2(),triangle.v0(),{255,255,255});
+		}
+	} else if (event.type == SDL_MOUSEBUTTONDOWN) {
+		window.savePPM("output.ppm");
+		window.saveBMP("output.bmp");
+	}
+}
 
 int main(int argc, char *argv[]) {
 	//week02 task 2
@@ -246,34 +311,22 @@ int main(int argc, char *argv[]) {
 	SDL_Event event;
 	char c;
 	CanvasTriangle canvas = {{160,10},{300,230},{10,150}};
+	canvas.v0().texturePoint = {195,5};
+	canvas.v1().texturePoint = {395,380};
+	canvas.v2().texturePoint = {65,330};
+
+	TextureMap file = TextureMap("texture.ppm");
+		textureMapper(window,canvas,file);
+		lineDraw(window,canvas.v0(),canvas.v1(),{255,255,255});
+		lineDraw(window,canvas.v1(),canvas.v2(),{255,255,255});
+ 	    lineDraw(window,canvas.v2(),canvas.v0(),{255,255,255});
+
 	while (true) {
 		// We MUST poll for events - otherwise the window will freeze !
 		if (window.pollForInputEvents(event)) {
 			handleEvent(event, window);
-			//week 03, task 3
-			if(event.type == SDL_KEYDOWN){
-				c= event.key.keysym.sym;
-				//week02 task4, keypress u and f
-				if (c == 'u'){
-					CanvasTriangle triangle = strokedTriangles();
-					Colour colour = {rand()%256,rand()%256,rand()%256};
-		    		lineDraw(window,triangle.v0(),triangle.v1(),colour);
-					lineDraw(window,triangle.v1(),triangle.v2(),colour);
-					lineDraw(window,triangle.v2(),triangle.v0(),colour);
-				}
-				if (c == 'f'){
-					CanvasTriangle triangle = strokedTriangles();
-					Colour colour = {rand()%256,rand()%256,rand()%256};
-					filledtriangle(window,triangle,colour);
-					// white edge
-					  lineDraw(window,triangle.v0(),triangle.v1(),{255,255,255});
-					  lineDraw(window,triangle.v1(),triangle.v2(),{255,255,255});
-					  lineDraw(window,triangle.v2(),triangle.v0(),{255,255,255});
-				}
-			}
 		}
-		TextureMap file = TextureMap("texture.ppm");
-		textureMapper(window,canvas,file);
+		
 		//std::cout<<file<<std::endl;
 		//draw(window);
 		//week02 task 3
