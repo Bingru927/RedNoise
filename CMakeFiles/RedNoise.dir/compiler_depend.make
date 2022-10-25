@@ -4541,6 +4541,11 @@ CMakeFiles/RedNoise.dir/src/RedNoise.cpp.o: src/RedNoise.cpp \
   /opt/homebrew/include/SDL2/SDL_locale.h \
   /opt/homebrew/include/SDL2/SDL_misc.h \
   libs/sdw/Utils.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/map \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/is_transparent.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__node_handle \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/optional \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__tree \
   libs/glm-0.9.7.2/glm/glm.hpp \
   libs/glm-0.9.7.2/glm/detail/_fixes.hpp \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cmath \
@@ -4670,7 +4675,8 @@ CMakeFiles/RedNoise.dir/src/RedNoise.cpp.o: src/RedNoise.cpp \
   libs/glm-0.9.7.2/glm/gtx/string_cast.inl \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdarg \
   libs/sdw/Colour.h \
-  libs/sdw/TextureMap.h
+  libs/sdw/TextureMap.h \
+  libs/sdw/ModelTriangle.h
 
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdarg:
@@ -4680,6 +4686,8 @@ libs/glm-0.9.7.2/glm/gtx/dual_quaternion.hpp:
 libs/glm-0.9.7.2/glm/gtc/constants.hpp:
 
 libs/glm-0.9.7.2/glm/gtc/quaternion.hpp:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/is_transparent.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/sstream:
 
@@ -4730,6 +4738,8 @@ libs/glm-0.9.7.2/glm/mat4x4.hpp:
 libs/glm-0.9.7.2/glm/detail/type_mat4x3.inl:
 
 libs/glm-0.9.7.2/glm/detail/type_mat4x3.hpp:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/optional:
 
 libs/glm-0.9.7.2/glm/mat4x3.hpp:
 
@@ -5575,6 +5585,8 @@ libs/sdw/ModelTriangle.cpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/arm/_mcontext.h:
 
+/Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__node_handle:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/new:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stddef.h:
@@ -5689,7 +5701,11 @@ libs/sdw/CanvasPoint.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/alloca.h:
 
+/Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__tree:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/as_const.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/map:
 
 libs/glm-0.9.7.2/glm/mat2x4.hpp:
 

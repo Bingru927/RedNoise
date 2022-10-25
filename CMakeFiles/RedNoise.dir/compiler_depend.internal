@@ -4551,6 +4551,11 @@ CMakeFiles/RedNoise.dir/src/RedNoise.cpp.o
  /opt/homebrew/include/SDL2/SDL_locale.h
  /opt/homebrew/include/SDL2/SDL_misc.h
  /Users/bingru/Workspace/CG/RedNoise/libs/sdw/Utils.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/map
+ /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/is_transparent.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__node_handle
+ /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/optional
+ /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__tree
  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/glm.hpp
  /Users/bingru/Workspace/CG/RedNoise/libs/glm-0.9.7.2/glm/detail/_fixes.hpp
  /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cmath
@@ -4681,4 +4686,5 @@ CMakeFiles/RedNoise.dir/src/RedNoise.cpp.o
  /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdarg
  /Users/bingru/Workspace/CG/RedNoise/libs/sdw/Colour.h
  /Users/bingru/Workspace/CG/RedNoise/libs/sdw/TextureMap.h
+ /Users/bingru/Workspace/CG/RedNoise/libs/sdw/ModelTriangle.h
 
