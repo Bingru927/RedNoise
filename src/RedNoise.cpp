@@ -579,27 +579,43 @@ int main(int argc, char *argv[]) {
 	float height = window.height;
 	float width = window.width;
 	SDL_Event event;
-	bool press = false;
+	bool press_X = false;
+	bool press_Y = false;
 	std::vector<ModelTriangle> l= loadOBJFile("cornell-box.obj",0.35);
 	while (true) {
 		// We MUST poll for events - otherwise the window will freeze !
 		if (window.pollForInputEvents(event)) handleEvent(event, window);
-		if(event.key.keysym.sym == SDLK_z) press = true;
-		if(press){
+		if(event.key.keysym.sym == SDLK_m) press_X = true;
+		if(event.key.keysym.sym == SDLK_n) press_Y = true;
+		if(press_X){
 			if(event.key.keysym.sym == SDLK_s){
 			std::cout << "STOP" << std::endl;
 				zbuffer();
 				window.clearPixels();
-				press = false;
+				press_X = false;
 			}
 			zbuffer();
 			window.clearPixels();
-			glm::mat3x3 x = glm::mat3x3(cos(0.01),0,sin(0.01),0,1,0,-sin(0.01),0,cos(0.01));
+			glm::mat3x3 x = {{1,0,0},{0,cos(0.01),-sin(0.01)},{0,sin(0.01),cos(0.01)}};;
+			cameraPosition = x*cameraPosition;
+			cameraOritation = x*cameraOritation;
+			//cameraOritation = lookAt(cameraPosition);
+			rasterisedRender(window,l,cameraPosition,2.0,cameraOritation);
+		}else if(press_Y){
+			if(event.key.keysym.sym == SDLK_s){
+			std::cout << "STOP" << std::endl;
+				zbuffer();
+				window.clearPixels();
+				press_Y = false;
+			}
+			zbuffer();
+			window.clearPixels();
+			glm::mat3x3 x = glm::mat3(cos(0.01),0,-sin(0.01),0,1,0,sin(0.01),0,cos(0.01));
 			cameraPosition = x*cameraPosition;
 			cameraOritation = x*cameraOritation;
 			cameraOritation = lookAt(cameraPosition);
 			rasterisedRender(window,l,cameraPosition,2.0,cameraOritation);
-		}		
+		}
 		//rasterisedRender(window,l,cameraPosition,2.0,cameraOritation);
 		// Need to render thse frame at the end, or nothing actually gets shown on the screen !
 		window.renderFrame();
