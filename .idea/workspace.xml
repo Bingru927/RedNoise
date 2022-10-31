@@ -16,15 +16,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="954bd929-b8da-4224-b8c4-5c140efad7c2" name="变更" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.vscode/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/.vscode/settings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/compiler_depend.internal" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/compiler_depend.internal" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/compiler_depend.make" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/compiler_depend.make" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/src/RedNoise.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/src/RedNoise.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/src/RedNoise.cpp.o.d" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/src/RedNoise.cpp.o.d" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RedNoise" beforeDir="false" afterPath="$PROJECT_DIR$/RedNoise" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/output.bmp" beforeDir="false" afterPath="$PROJECT_DIR$/output.bmp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/output.ppm" beforeDir="false" afterPath="$PROJECT_DIR$/output.ppm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/RedNoise.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/RedNoise.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -74,6 +66,7 @@
       <workItem from="1666488703338" duration="203000" />
       <workItem from="1666488987711" duration="932000" />
       <workItem from="1666629182918" duration="6000" />
+      <workItem from="1667010069781" duration="41000" />
     </task>
     <servers />
   </component>

@@ -4676,7 +4676,8 @@ CMakeFiles/RedNoise.dir/src/RedNoise.cpp.o: src/RedNoise.cpp \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdarg \
   libs/sdw/Colour.h \
   libs/sdw/TextureMap.h \
-  libs/sdw/ModelTriangle.h
+  libs/sdw/ModelTriangle.h \
+  libs/sdw/RayTriangleIntersection.h
 
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdarg:
