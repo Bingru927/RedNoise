@@ -22,61 +22,7 @@
   <component name="ChangeListManager">
     <list default="true" id="954bd929-b8da-4224-b8c4-5c140efad7c2" name="变更" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.vscode/c_cpp_properties.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.vscode/settings.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeCache.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/3.24.2/CMakeCCompiler.cmake" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/3.24.2/CMakeCXXCompiler.cmake" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/3.24.2/CMakeDetermineCompilerABI_C.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/3.24.2/CMakeDetermineCompilerABI_CXX.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/3.24.2/CMakeSystem.cmake" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/3.24.2/CompilerIdC/CMakeCCompilerId.c" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/3.24.2/CompilerIdC/CMakeCCompilerId.o" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/3.24.2/CompilerIdCXX/CMakeCXXCompilerId.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/3.24.2/CompilerIdCXX/CMakeCXXCompilerId.o" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/CMakeDirectoryInformation.cmake" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/CMakeError.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/CMakeOutput.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/Makefile.cmake" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/Makefile2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/DependInfo.cmake" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/build.make" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/cmake_clean.cmake" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/compiler_depend.internal" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/compiler_depend.make" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/compiler_depend.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/depend.make" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/flags.make" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/libs/sdw/CanvasPoint.cpp.o" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/libs/sdw/CanvasPoint.cpp.o.d" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/libs/sdw/CanvasTriangle.cpp.o" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/libs/sdw/CanvasTriangle.cpp.o.d" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/libs/sdw/Colour.cpp.o" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/libs/sdw/Colour.cpp.o.d" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/libs/sdw/DrawingWindow.cpp.o" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/libs/sdw/DrawingWindow.cpp.o.d" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/libs/sdw/ModelTriangle.cpp.o" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/libs/sdw/ModelTriangle.cpp.o.d" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/libs/sdw/RayTriangleIntersection.cpp.o" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/libs/sdw/RayTriangleIntersection.cpp.o.d" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/libs/sdw/TextureMap.cpp.o" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/libs/sdw/TextureMap.cpp.o.d" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/libs/sdw/TexturePoint.cpp.o" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/libs/sdw/TexturePoint.cpp.o.d" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/libs/sdw/Utils.cpp.o" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/libs/sdw/Utils.cpp.o.d" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/link.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/progress.make" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/src/RedNoise.cpp.o" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/RedNoise.dir/src/RedNoise.cpp.o.d" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/TargetDirectories.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/clion-log.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/cmake.check_cache" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeFiles/progress.marks" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RedNoise" beforeDir="false" afterPath="$PROJECT_DIR$/RedNoise" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/clion-log.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake_install.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake_install.cmake" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Testing/Temporary/LastTest.log" beforeDir="false" afterPath="$PROJECT_DIR$/Testing/Temporary/LastTest.log" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/RedNoise.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/RedNoise.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -158,7 +104,13 @@
       <workItem from="1667824092209" duration="15551000" />
       <workItem from="1668169238234" duration="1059000" />
       <workItem from="1668285319272" duration="5237000" />
-      <workItem from="1668389398297" duration="93000" />
+      <workItem from="1668389398297" duration="6409000" />
+      <workItem from="1668399365882" duration="57000" />
+      <workItem from="1668424132568" duration="5527000" />
+      <workItem from="1668434962237" duration="2610000" />
+      <workItem from="1668438606317" duration="7396000" />
+      <workItem from="1668465418732" duration="11943000" />
+      <workItem from="1668727273290" duration="4550000" />
     </task>
     <servers />
   </component>
