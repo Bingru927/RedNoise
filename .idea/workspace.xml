@@ -41,7 +41,7 @@
     <option name="stateVersion" value="1" />
   </component>
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="CurrentFile" />
+    <option name="selectedTabId" value="ProjectErrors" />
   </component>
   <component name="ProjectApplicationVersion">
     <option name="ide" value="CLion" />
@@ -111,6 +111,12 @@
       <workItem from="1668438606317" duration="7396000" />
       <workItem from="1668465418732" duration="11943000" />
       <workItem from="1668727273290" duration="4550000" />
+      <workItem from="1668862882615" duration="12819000" />
+      <workItem from="1668901563084" duration="5277000" />
+      <workItem from="1669029692989" duration="110000" />
+      <workItem from="1669040759141" duration="7156000" />
+      <workItem from="1669076012405" duration="4440000" />
+      <workItem from="1669145871303" duration="6654000" />
     </task>
     <servers />
   </component>
