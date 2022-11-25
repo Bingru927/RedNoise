@@ -35,6 +35,7 @@ glm::vec3 sphereLightPosition (-0.3, 1.3, 1.5);
 glm::vec3 boxCameraPosition (0.0, 0.0, 4.0);
 glm::mat3 cameraOrientation (1, 0, 0, 0, 1, 0, 0, 0, 1);
 glm::vec3 lightPosition (0,0.5,0.5);
+glm::vec3 cameraPositionChange(0.0, 0.0, 4.0);
 
 float scalar = 2.0f*HEIGHT/3;
 float rayTraceScalar = 50.0f;
@@ -248,6 +249,9 @@ glm::mat3x3 affine(CanvasTriangle t){
 }
 
 
+
+
+
 void affineTransformation(DrawingWindow &window, CanvasTriangle triangle, CanvasPoint point,glm::mat3x3 affineT, TextureMap textureMap){
 	//inverse of triangle
 	TexturePoint p;
@@ -418,14 +422,34 @@ glm::mat3 lookAt(glm::vec3 cameraPosition){
 }
 
 // Scan the screen from the far left to the right, the camera is placed in world coordinates, so convert the screen to world coordinates
+//glm::vec3 getWorldPoint(CanvasPoint p, float FL, float S, glm::vec3 cameraPosition,glm::mat3 orientation){
+//	glm::vec3 point;
+//	point.z = cameraPosition.z - FL;
+//	point.x =(point.z*(p.x-float(WIDTH)/2))/(FL * S);
+//	point.y =(point.z*(p.y-float(HEIGHT)/2))/(FL * (-S));
+//    //point = point * orientation;
+//    point = {point.x+cameraPosition.x,point.y+cameraPosition.y,point.z+(-cameraPosition.z)};
+//	return point;
+//}
+
 glm::vec3 getWorldPoint(CanvasPoint p, float FL, float S, glm::vec3 cameraPosition,glm::mat3 orientation){
-	glm::vec3 point;
-	point.z = cameraPosition.z - FL;
-	point.x =(point.z*(p.x-float(WIDTH)/2))/(FL * S);
-	point.y =(point.z*(p.y-float(HEIGHT)/2))/(FL * (-S));
-    //point = point * orientation;
-    point = {point.x+cameraPosition.x,point.y+cameraPosition.y,point.z+(-cameraPosition.z)};
-	return point;
+    glm::vec3 point;
+//    if(n){
+//        point.z = cameraPosition.z - FL;
+//        point.x =(point.z*(p.x-float(WIDTH)/2))/(FL * S);
+//        point.y =(point.z*(p.y-float(HEIGHT)/2))/(FL * (-S));
+//        //point = point * orientation;
+//        point = {point.x+cameraPosition.x,point.y+cameraPosition.y,point.z+(-cameraPosition.z)};
+   // }else{
+        point.z = cameraPosition.z - FL;
+        point.x =(p.x-float(WIDTH)/2)/S;
+        point.y =(p.y-float(HEIGHT)/2)/-S;
+        //point = point * orientation;
+        point = {point.x+cameraPosition.x,point.y+cameraPosition.y,point.z};
+    //}
+
+
+    return point;
 }
 
 glm::vec3 getSphereWorldPoint(CanvasPoint p, float FL, float S, glm::vec3 cameraPosition,glm::mat3 orientation){
@@ -484,13 +508,100 @@ void shadow(DrawingWindow &window,float FL,float S,glm::vec3 boxCameraPosition,s
 }
 */
 
+vector<glm::vec3> multipleLight(glm::vec3 LP){
+    vector<glm::vec3> ml;
+    float n = 0.01f;
+    for(int i = -150; i <200; i++){
+        glm::vec3 light;
+        light.x= LP.x;
+        light.y= LP.y;
+        light.x+=n;
+        light.z+=n;
+        float n=0.01f*float(i);
+        //cout<<light.x<<endl;
+        ml.push_back(light);
+    }
+    return ml;
+}
+
+float softShadow(const RayTriangleIntersection& multipleIntersection,const RayTriangleIntersection& closetIntersection){
+    float number = 1.0f;
+    if(multipleIntersection.triangleIndex == closetIntersection.triangleIndex) number += 1.0f;
+    if(number != 1)cout<<number<<endl;
+    number = number/350;
+    return number;
+}
+glm::mat3x3 modelTriangleAffine(ModelTriangle triangle,const TextureMap& file){
+    float x0,y0,x1,y1,x2,y2,z0,z1,z2,u0,v0,u1,v1,u2,v2;
+    x0 = triangle.vertices[0].x;
+    y0 = triangle.vertices[0].y;
+    z0 = triangle.vertices[0].z;
+    x1 = triangle.vertices[1].x;
+    y1 = triangle.vertices[1].y;
+    z1 = triangle.vertices[1].z;
+    x2 = triangle.vertices[2].x;
+    y2 = triangle.vertices[2].y;
+    z2 = triangle.vertices[2].z;
+    u0 = triangle.texturePoints[0].x * float (file.width);
+    v0 = triangle.texturePoints[0].y * float (file.height);
+    u1 = triangle.texturePoints[1].x * float (file.width);
+    v1 = triangle.texturePoints[1].y * float (file.height);
+    u2 = triangle.texturePoints[2].x * float (file.width);
+    v2 = triangle.texturePoints[2].y * float (file.height);
+
+    glm::mat3x3 texture = {{u0,u1,u2},{v0,v1,v2},{1,1,1}};
+    glm::mat3x3 oTriangle = {{x0,x1,x2},{y0,y1,y2},{z0,z1,z2}};
+    glm::mat3x3 iTriangle = glm::inverse(oTriangle);
+    glm::mat3x3 affineT = iTriangle * texture ;
+    //std::cout<<glm::to_string(affineT)<<std::endl;
+    return affineT;
+}
+
+uint32_t textureModelTriangle(glm::vec3 texturePoint, const TextureMap& file){
+    int index = int(texturePoint.y) * int(file.width) + int(texturePoint.x);
+    uint32_t c = file.pixels[index-1];
+    return  c;
+}
+
+Colour textureMapFloor(const TextureMap& file, const RayTriangleIntersection& closetIntersection){
+    glm::mat3x3 affine = modelTriangleAffine(closetIntersection.intersectedTriangle,file);
+    glm::vec3 texturePoint = closetIntersection.intersectionPoint * affine;
+    Colour c;
+    uint32_t color = textureModelTriangle(texturePoint,file);
+    c.blue = int((color) & 0xff);
+    c.green = int((color >> 8) & 0xff);
+    c.red = int((color >> 16) & 0xff);
+    return c;
+}
+
+Colour mirror( const RayTriangleIntersection& closetIntersection,glm::vec3 LP, glm::vec3 view,const std::vector<ModelTriangle>& triangle,Colour c){
+    glm::vec3 mirrorReflection = glm::normalize(view-2.0f * closetIntersection.intersectedTriangle.normal * glm::dot(view,closetIntersection.intersectedTriangle.normal));
+    RayTriangleIntersection mirror = getClosetsIntersection(closetIntersection.intersectionPoint, mirrorReflection, triangle);
+    c=mirror.intersectedTriangle.colour;
+    glm::vec3 mirrorLightDirection = glm::normalize(mirror.intersectionPoint - LP);
+    RayTriangleIntersection ml = getClosetsIntersection(LP, mirrorLightDirection, triangle);
+    if(mirror.intersectedTriangle.colour.name=="Cobbles"){
+        TextureMap file = TextureMap("chessboard.ppm");
+        c = textureMapFloor(file,mirror);
+    }
+    if(ml.triangleIndex != mirror.triangleIndex) {
+        c.red = int(float(c.red) * ambientStrength);
+        c.green = int(float(c.green) * ambientStrength);
+        c.blue = int(float(c.blue) * ambientStrength);
+    }
+    return c;
+}
+
+
 void ray(DrawingWindow &window, float FL, float S, glm::vec3 cameraPosition, const std::vector<ModelTriangle>& triangle, glm::vec3 LP,glm::mat3x3 orientation){
 	float sourceStrength = 8;
 	float specularExponent = 256.0f;
+    string mirrorName = "Yellow";
+    vector<glm::vec3> multipleLightPoint = multipleLight(LP);
 	for(int y=0; y<HEIGHT; y++){
 		for(int x=0; x<WIDTH; x++){
-			glm::vec3 worldPoint = getWorldPoint(CanvasPoint(float(x),float(y)), FL, S, cameraPosition, orientation);
-			glm::vec3 rayDirection = glm::normalize(worldPoint-cameraPosition);
+			glm::vec3 worldPoint = (getWorldPoint(CanvasPoint(float(x),float(y)), FL, 2*HEIGHT/3, cameraPosition, orientation));
+            glm::vec3 rayDirection = glm::normalize(worldPoint-cameraPosition)*glm::inverse(orientation);
             //cout<<rayDirection.x<<rayDirection.y<<endl;
 			RayTriangleIntersection closetIntersection = getClosetsIntersection(cameraPosition, rayDirection, triangle);
 			glm::vec3 lightDirection = glm::normalize(closetIntersection.intersectionPoint - LP);
@@ -503,23 +614,25 @@ void ray(DrawingWindow &window, float FL, float S, glm::vec3 cameraPosition, con
             glm::vec3 reflection = lightDirection - 2.0f * (closetIntersection.intersectedTriangle.normal * glm::dot(lightDirection, closetIntersection.intersectedTriangle.normal));
 			float specularLight = glm::pow(glm::dot(view,reflection), specularExponent);
 			float lightIntensity = PL*lightAngle+ specularLight+ambientStrength;
+
             Colour c=closetIntersection.intersectedTriangle.colour;
-            if(closetIntersection.intersectedTriangle.colour.name == "Yellow"){
-                glm::vec3 mirrorReflection = glm::normalize(view-2.0f * closetIntersection.intersectedTriangle.normal * glm::dot(view,closetIntersection.intersectedTriangle.normal));
-                RayTriangleIntersection mirror = getClosetsIntersection(closetIntersection.intersectionPoint, mirrorReflection, triangle);
-                c=mirror.intersectedTriangle.colour;
-                glm::vec3 mirrorLightDirection = glm::normalize(mirror.intersectionPoint - LP);
-                RayTriangleIntersection ml = getClosetsIntersection(LP, mirrorLightDirection, triangle);
-                if(ml.triangleIndex != mirror.triangleIndex) {
-                    c.red = int(float(c.red) * ambientStrength);
-                    c.green = int(float(c.green) * ambientStrength);
-                    c.blue = int(float(c.blue) * ambientStrength);
-                }
+            if(closetIntersection.intersectedTriangle.colour.name == mirrorName) c = mirror(closetIntersection,LP,view,triangle,c);
+            if(closetIntersection.intersectedTriangle.colour.name=="Cobbles"){
+                TextureMap file = TextureMap("chessboard.ppm");
+                c = textureMapFloor(file,closetIntersection);
+                cout<<1<<endl;
             }
             float red = std::max(0.0f,std::min(255.0f, float ((c.red)) * lightIntensity));
 			float green = std::max(0.0f,std::min(255.0f, float ((c.green)) * lightIntensity));
 			float blue = std::max(0.0f,std::min(255.0f, float ((c.blue)) * lightIntensity));
-            if(closetIntersection.triangleIndex != light.triangleIndex && closetIntersection.intersectedTriangle.colour.name != "Yellow"){
+            float num = 0.0f;
+//            for(glm::vec3 l : multipleLightPoint ){
+//                glm::vec3 mLightDirection = glm::normalize(closetIntersection.intersectionPoint - l);
+//                RayTriangleIntersection mLight = getClosetsIntersection(l, mLightDirection, triangle);
+//                num = softShadow(mLight,closetIntersection);
+//               // cout<<num<<endl;
+//            }
+            if(closetIntersection.triangleIndex != light.triangleIndex && closetIntersection.intersectedTriangle.colour.name != mirrorName){
 				red = red*ambientStrength;
 				green = green*ambientStrength;
 				blue = blue*ambientStrength;
@@ -741,7 +854,6 @@ void drawGouraudBox(DrawingWindow &window, float FL, float S, glm::vec3 cameraPo
             float lightIntensity2 = PL2*lightAngle2+ specularLight2+ambientStrength;
 
             float lightIntensity = lightIntensity0*alpha + lightIntensity1*beta + lightIntensity2*gamma;
-
             //cout<<lightDistance<<endl;
             float red = std::max(0.0f,std::min(255.0f, float ((closetIntersection.intersectedTriangle.colour.red)) * lightIntensity));
             float green = std::max(0.0f,std::min(255.0f, float ((closetIntersection.intersectedTriangle.colour.green)) * lightIntensity));
@@ -886,9 +998,10 @@ std::vector<ModelTriangle> loadOBJFile(const string& objFilename, float SF, bool
 	string fileText;
 	std::vector<ModelTriangle> triangle;
 	std::vector<glm::vec3> points;
-	std::string colourName;
+    std::vector<TexturePoint> vt;
+    std::string colourName;
 	std::map<string,Colour> palette;
-	if(t) palette = readMaterialFile("cornell-box.mtl");
+	if(t) palette = readMaterialFile("textured-cornell-box.mtl");
 	ifstream MyReadFile(objFilename);
 	while (getline(MyReadFile, fileText)){
 		std::vector<std::string> splitDelimiter = split(fileText,' ');
@@ -901,7 +1014,6 @@ std::vector<ModelTriangle> loadOBJFile(const string& objFilename, float SF, bool
 			points.push_back(p);
 	 	}
 	 	if(splitDelimiter[0]=="f"){
-			//std::vector<std::string> f = split(fileText,' ');
 			//std::cout<<s[3]<<std::endl;
             int fx = std::stoi(splitDelimiter[1]);
             int fy = std::stoi(splitDelimiter[2]);
@@ -912,12 +1024,24 @@ std::vector<ModelTriangle> loadOBJFile(const string& objFilename, float SF, bool
 			if(t){
                 m.colour = palette[colourName];
                 m.colour.name = colourName;
+                if(m.colour.name == "Cobbles"){
+                    std::vector<std::string> f0 = split(splitDelimiter[1],'/');
+                    std::vector<std::string> f1 = split(splitDelimiter[2],'/');
+                    std::vector<std::string> f2 = split(splitDelimiter[3],'/');
+                    m.texturePoints={vt[(std::stoi(f0[1]))-1],vt[(std::stoi(f1[1]))-1],vt[(std::stoi(f2[1]))-1]};
+                }
             }
 			//cout<<m<<endl;
 			m.normal=glm::normalize(glm::cross(m.vertices[2]-m.vertices[0],m.vertices[1]-m.vertices[0]));
-            cout<<m.colour.name<<endl;
+           // cout<<m.colour.name<<endl;
 	 		triangle.push_back(m);
 	 	}
+        if(splitDelimiter[0]=="vt"){
+            float x = std::stof(splitDelimiter[1]);
+            float y = std::stof(splitDelimiter[2]);
+            TexturePoint p = {x, y};
+            vt.push_back(p);
+        }
 		if(splitDelimiter[0]=="usemtl"){
 			//std::cout<<splitDelimiter[1]<<std::endl;
 			colourName = splitDelimiter[1];
@@ -931,31 +1055,36 @@ void handleEvent(SDL_Event event, DrawingWindow &window) {
 	if (event.type == SDL_KEYDOWN) {
 		float move = 0.1;
         zBuffer();
-		std::vector<ModelTriangle> l= loadOBJFile("cornell-box.obj",scalingFactor,true);
+        bool rotation = false;
+        bool transform = true;
+		std::vector<ModelTriangle> l= loadOBJFile("textured-cornell-box.obj",scalingFactor,true);
 		std::vector<ModelTriangle> sphere= loadOBJFile("sphere.obj",scalingFactor,false);
 		if (event.key.keysym.sym == SDLK_LEFT) {
 			std::cout << "LEFT" << std::endl;
 			window.clearPixels();
             boxCameraPosition.x = boxCameraPosition.x + move;
-			rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
-           // ray(window, focalLength, scalar, boxCameraPosition, l, lightPosition, cameraOrientation);
+			//rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
+            ray(window, focalLength, scalar, boxCameraPosition, l, lightPosition, cameraOrientation);
         }else if (event.key.keysym.sym == SDLK_RIGHT){
 			std::cout << "RIGHT" << std::endl;
 			window.clearPixels();
             boxCameraPosition.x = boxCameraPosition.x - move;
-			rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
-           // ray(window, focalLength, scalar, boxCameraPosition, l, lightPosition, cameraOrientation);
+			//rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
+            ray(window, focalLength, scalar, boxCameraPosition, l, lightPosition, cameraOrientation);
         }else if (event.key.keysym.sym == SDLK_UP){
 			std::cout << "UP" << std::endl;
 			window.clearPixels();
             boxCameraPosition.y = boxCameraPosition.y - move;
-			rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
-		}else if (event.key.keysym.sym == SDLK_DOWN) {
+			//rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
+            ray(window, focalLength, scalar, boxCameraPosition, l, lightPosition, cameraOrientation);
+        }else if (event.key.keysym.sym == SDLK_DOWN) {
 			window.clearPixels();
 			std::cout << "DOWN" << std::endl;
             boxCameraPosition.y = boxCameraPosition.y + move;
-			rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
-		}else if (event.key.keysym.sym == SDLK_a){
+			//rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
+            ray(window, focalLength, scalar, boxCameraPosition, l, lightPosition, cameraOrientation);
+
+        }else if (event.key.keysym.sym == SDLK_a){
 			std::cout << "FORWARD" << std::endl;
 			window.clearPixels();
             boxCameraPosition.z = boxCameraPosition.z - move;
@@ -971,15 +1100,18 @@ void handleEvent(SDL_Event event, DrawingWindow &window) {
 			glm::mat3x3 x = {{1,0,0},{0,cos(0.1),-sin(0.1)},{0,sin(0.1),cos(0.1)}};
             boxCameraPosition = x * boxCameraPosition;
             cameraOrientation = x * cameraOrientation;
-			rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
-		}else if (event.key.keysym.sym == SDLK_y) {
+			//rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
+            ray(window, focalLength, rayTraceScalar, boxCameraPosition, l, lightPosition, cameraOrientation);
+        }else if (event.key.keysym.sym == SDLK_y) {
 			std::cout << "ROTATION OF Y" << std::endl;
 			window.clearPixels();
 			glm::mat3x3 x = {{cos(0.1),0,sin(0.1)},{0,1,0},{-sin(0.1),0,cos(0.1)}};
             boxCameraPosition = x * boxCameraPosition;
             cameraOrientation = x * cameraOrientation;
-			rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
-		}else if(event.key.keysym.sym == SDLK_j){
+            cout<<boxCameraPosition.z<<endl;
+			//rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
+            ray(window, focalLength, rayTraceScalar, boxCameraPosition, l, lightPosition, cameraOrientation);
+        }else if(event.key.keysym.sym == SDLK_j){
 			std::cout << "RAY TRACE" << std::endl;
 			window.clearPixels();
 			ray(window, focalLength, rayTraceScalar, boxCameraPosition, l, lightPosition, cameraOrientation);
@@ -1036,7 +1168,7 @@ void handleEvent(SDL_Event event, DrawingWindow &window) {
         }else if(event.key.keysym.sym == SDLK_d){
 			std::cout << "RAY TRACE LEFT" << std::endl;
 			window.clearPixels();
-			lightPosition.x = lightPosition.x-move;
+            boxCameraPosition.x = boxCameraPosition.x-move;
 			ray(window, focalLength, scalar, boxCameraPosition, l, lightPosition, cameraOrientation);
 		}else if(event.key.keysym.sym == SDLK_f){
 			std::cout << "RAY TRACE RIGHT" << std::endl;
@@ -1051,7 +1183,7 @@ void handleEvent(SDL_Event event, DrawingWindow &window) {
 		}else if(event.key.keysym.sym == SDLK_h){
 			std::cout << "RAY TRACE DOWN" << std::endl;
 			window.clearPixels();
-			lightPosition.y = lightPosition.y-move;
+            boxCameraPosition.y = boxCameraPosition.y-move;
 			ray(window, focalLength, scalar, boxCameraPosition, l, lightPosition, cameraOrientation);
 		}else if (event.key.keysym.sym == SDLK_v) {
 			CanvasTriangle triangle = strokedTriangles();
@@ -1110,7 +1242,7 @@ int main(int argc, char *argv[]) {
 	SDL_Event event;
 	bool press_X = false;
 	bool press_Y = false;
-	std::vector<ModelTriangle> l= loadOBJFile("cornell-box.obj",scalingFactor,true);
+	std::vector<ModelTriangle> l= loadOBJFile("textured-cornell-box.obj",scalingFactor,true);
 	while (true) {
 		// We MUST poll for events - otherwise the window will freeze !
 		if (window.pollForInputEvents(event)) handleEvent(event, window);
@@ -1129,7 +1261,7 @@ int main(int argc, char *argv[]) {
 			glm::mat3x3 x = {{1,0,0},{0,cos(0.01),-sin(0.01)},{0,sin(0.01),cos(0.01)}};;
             boxCameraPosition = x * boxCameraPosition;
             cameraOrientation = x * cameraOrientation;
-			cameraOrientation = lookAt(boxCameraPosition);
+			//cameraOrientation = lookAt(boxCameraPosition);
 			//rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
             ray(window, focalLength, 50, boxCameraPosition, l, lightPosition, cameraOrientation);
 
