@@ -510,27 +510,33 @@ void shadow(DrawingWindow &window,float FL,float S,glm::vec3 boxCameraPosition,s
 
 vector<glm::vec3> multipleLight(glm::vec3 LP){
     vector<glm::vec3> ml;
-    float n = 0.01f;
-    for(int i = -150; i <200; i++){
-        glm::vec3 light;
-        light.x= LP.x;
-        light.y= LP.y;
-        light.x+=n;
-        light.z+=n;
-        float n=0.01f*float(i);
-        //cout<<light.x<<endl;
-        ml.push_back(light);
+    float r = 16.0f;
+    float step = 0.05f;
+    for(int i=int(-r); i<int(r); i++){
+        for(int j=int(-r); j<int(r); j++){
+            if(fabs(i)+fabs(j)<=r){
+                glm::vec3 light (LP.x+float(i)*step,LP.y,LP.z+float(j)*step);
+                ml.push_back(light);
+            }
+        }
     }
     return ml;
 }
 
-float softShadow(const RayTriangleIntersection& multipleIntersection,const RayTriangleIntersection& closetIntersection){
+
+float softShadow(const RayTriangleIntersection& closetIntersection,const std::vector<ModelTriangle>& triangle,glm::vec3 LP){
+    vector<glm::vec3> multipleLightPoint = multipleLight(LP);
     float number = 1.0f;
-    if(multipleIntersection.triangleIndex == closetIntersection.triangleIndex) number += 1.0f;
-    if(number != 1)cout<<number<<endl;
-    number = number/350;
+    for(glm::vec3 l : multipleLightPoint ) {
+        glm::vec3 mLightDirection = glm::normalize(closetIntersection.intersectionPoint - l);
+        RayTriangleIntersection mLight = getClosetsIntersection(l, mLightDirection, triangle);
+        if(mLight.triangleIndex == closetIntersection.triangleIndex) number++;
+    }
+    number = number/float(multipleLightPoint.size());
     return number;
 }
+
+
 glm::mat3x3 modelTriangleAffine(ModelTriangle triangle,const TextureMap& file){
     float x0,y0,x1,y1,x2,y2,z0,z1,z2,u0,v0,u1,v1,u2,v2;
     x0 = triangle.vertices[0].x;
@@ -574,70 +580,59 @@ Colour textureMapFloor(const TextureMap& file, const RayTriangleIntersection& cl
     return c;
 }
 
-Colour mirror( const RayTriangleIntersection& closetIntersection,glm::vec3 LP, glm::vec3 view,const std::vector<ModelTriangle>& triangle,Colour c){
-    glm::vec3 mirrorReflection = glm::normalize(view-2.0f * closetIntersection.intersectedTriangle.normal * glm::dot(view,closetIntersection.intersectedTriangle.normal));
-    RayTriangleIntersection mirror = getClosetsIntersection(closetIntersection.intersectionPoint, mirrorReflection, triangle);
-    c=mirror.intersectedTriangle.colour;
-    glm::vec3 mirrorLightDirection = glm::normalize(mirror.intersectionPoint - LP);
-    RayTriangleIntersection ml = getClosetsIntersection(LP, mirrorLightDirection, triangle);
-    if(mirror.intersectedTriangle.colour.name=="Cobbles"){
-        TextureMap file = TextureMap("chessboard.ppm");
-        c = textureMapFloor(file,mirror);
+
+
+Colour shootRay(glm::vec3 cameraPosition, glm::vec3 rayDirection, const std::vector<ModelTriangle>& triangle,glm::vec3 LP,float sourceStrength, int index, TextureMap file) {
+    if(index >= 5) {return {255, 255, 255};}
+    float specularExponent = 256.0f;
+    RayTriangleIntersection closetIntersection = getClosetsIntersection(cameraPosition, rayDirection, triangle);
+    glm::vec3 lightDirection = glm::normalize(closetIntersection.intersectionPoint - LP);
+    RayTriangleIntersection light = getClosetsIntersection(LP, lightDirection, triangle);
+    //model表面的点到灯的方向向量
+    float lightDistance = glm::length(LP - closetIntersection.intersectionPoint);
+    float PL = sourceStrength / float((4 * PI * lightDistance * lightDistance));
+    float lightAngle = max(0.0f, glm::dot(closetIntersection.intersectedTriangle.normal, lightDirection));
+    glm::vec3 view = glm::normalize(closetIntersection.intersectionPoint - cameraPosition);
+    glm::vec3 reflection = lightDirection - 2.0f * (closetIntersection.intersectedTriangle.normal *
+                                                    glm::dot(lightDirection,
+                                                             closetIntersection.intersectedTriangle.normal));
+    float specularLight = glm::pow(glm::dot(view, reflection), specularExponent);
+    float lightIntensity = PL * lightAngle + specularLight + ambientStrength;
+    float num = softShadow(closetIntersection, triangle, LP);
+    Colour c = closetIntersection.intersectedTriangle.colour;
+    if (closetIntersection.intersectedTriangle.colour.name == "Yellow") {
+        glm::vec3 mirrorReflection = glm::normalize(view-2.0f * closetIntersection.intersectedTriangle.normal * glm::dot(view,closetIntersection.intersectedTriangle.normal));
+        return shootRay(closetIntersection.intersectionPoint,mirrorReflection,triangle,LP,sourceStrength, index+1, file);
     }
-    if(ml.triangleIndex != mirror.triangleIndex) {
-        c.red = int(float(c.red) * ambientStrength);
-        c.green = int(float(c.green) * ambientStrength);
-        c.blue = int(float(c.blue) * ambientStrength);
+    if(closetIntersection.intersectedTriangle.colour.name=="Cobbles"){
+        c = textureMapFloor(file,closetIntersection);
+        //cout<<1<<endl;
     }
-    return c;
+    float red = std::max(0.0f, std::min(255.0f, float((c.red)) * lightIntensity));
+    float green = std::max(0.0f, std::min(255.0f, float((c.green)) * lightIntensity));
+    float blue = std::max(0.0f, std::min(255.0f, float((c.blue)) * lightIntensity));
+    auto shadowValue = glm::clamp<float>((0.6f/ambientStrength*num),0,1);
+//    auto shadowValue = ambientStrength;
+
+    if (closetIntersection.triangleIndex != light.triangleIndex && closetIntersection.intersectedTriangle.colour.name != "Yellow") {
+        red = red * shadowValue;
+        green = green * shadowValue;
+        blue = blue * shadowValue;
+    }
+    return {int(round(red)),int(round(green)),int(round(blue))};
 }
 
 
+
 void ray(DrawingWindow &window, float FL, float S, glm::vec3 cameraPosition, const std::vector<ModelTriangle>& triangle, glm::vec3 LP,glm::mat3x3 orientation){
-	float sourceStrength = 8;
-	float specularExponent = 256.0f;
-    string mirrorName = "Yellow";
-    vector<glm::vec3> multipleLightPoint = multipleLight(LP);
+    TextureMap file = TextureMap("chessboard.ppm");
+    float sourceStrength = 16;
 	for(int y=0; y<HEIGHT; y++){
 		for(int x=0; x<WIDTH; x++){
-			glm::vec3 worldPoint = (getWorldPoint(CanvasPoint(float(x),float(y)), FL, 2*HEIGHT/3, cameraPosition, orientation));
+			glm::vec3 worldPoint = (getWorldPoint(CanvasPoint(float(x),float(y)), FL, 2.0f*HEIGHT/3, cameraPosition, orientation));
             glm::vec3 rayDirection = glm::normalize(worldPoint-cameraPosition)*glm::inverse(orientation);
-            //cout<<rayDirection.x<<rayDirection.y<<endl;
-			RayTriangleIntersection closetIntersection = getClosetsIntersection(cameraPosition, rayDirection, triangle);
-			glm::vec3 lightDirection = glm::normalize(closetIntersection.intersectionPoint - LP);
-			RayTriangleIntersection light = getClosetsIntersection(LP, lightDirection, triangle);
-			//model表面的点到灯的方向向量
-			float lightDistance = glm::length(LP - closetIntersection.intersectionPoint);
-			float PL = sourceStrength / float(( 4 *PI * lightDistance * lightDistance));
-			float lightAngle = max(0.0f,glm::dot(closetIntersection.intersectedTriangle.normal, lightDirection));
-			glm::vec3 view = glm::normalize( closetIntersection.intersectionPoint-cameraPosition);
-            glm::vec3 reflection = lightDirection - 2.0f * (closetIntersection.intersectedTriangle.normal * glm::dot(lightDirection, closetIntersection.intersectedTriangle.normal));
-			float specularLight = glm::pow(glm::dot(view,reflection), specularExponent);
-			float lightIntensity = PL*lightAngle+ specularLight+ambientStrength;
-
-            Colour c=closetIntersection.intersectedTriangle.colour;
-            if(closetIntersection.intersectedTriangle.colour.name == mirrorName) c = mirror(closetIntersection,LP,view,triangle,c);
-            if(closetIntersection.intersectedTriangle.colour.name=="Cobbles"){
-                TextureMap file = TextureMap("chessboard.ppm");
-                c = textureMapFloor(file,closetIntersection);
-                cout<<1<<endl;
-            }
-            float red = std::max(0.0f,std::min(255.0f, float ((c.red)) * lightIntensity));
-			float green = std::max(0.0f,std::min(255.0f, float ((c.green)) * lightIntensity));
-			float blue = std::max(0.0f,std::min(255.0f, float ((c.blue)) * lightIntensity));
-            float num = 0.0f;
-//            for(glm::vec3 l : multipleLightPoint ){
-//                glm::vec3 mLightDirection = glm::normalize(closetIntersection.intersectionPoint - l);
-//                RayTriangleIntersection mLight = getClosetsIntersection(l, mLightDirection, triangle);
-//                num = softShadow(mLight,closetIntersection);
-//               // cout<<num<<endl;
-//            }
-            if(closetIntersection.triangleIndex != light.triangleIndex && closetIntersection.intersectedTriangle.colour.name != mirrorName){
-				red = red*ambientStrength;
-				green = green*ambientStrength;
-				blue = blue*ambientStrength;
-			}
-			uint32_t color = (255 << 24) + (int(round(red)) << 16) + (int(round(green)) << 8) + int(round(blue));
+            Colour c = shootRay(cameraPosition,rayDirection,triangle,LP,sourceStrength, 1, file);
+			uint32_t color = (255 << 24) + (int(round(c.red)) << 16) + (int(round(c.green)) << 8) + int(round(c.blue));
 			window.setPixelColour(x,y,color);
 		}
 	}
@@ -722,7 +717,6 @@ void drawGouraudSphere(DrawingWindow &window, float FL, float S, glm::vec3 camer
             float PL0 = sourceStrength / float(( 4 *PI * lightDistance0 * lightDistance0));
             float PL1 = sourceStrength / float(( 4 *PI * lightDistance1 * lightDistance1));
             float PL2 = sourceStrength / float(( 4 *PI * lightDistance2 * lightDistance2));
-
 
             glm::vec3 point = closetIntersection.intersectionPoint;
             glm::vec3 n0 = vertexNormal(triangle, closetIntersection.intersectedTriangle.vertices[0]);
@@ -811,7 +805,6 @@ void drawGouraudBox(DrawingWindow &window, float FL, float S, glm::vec3 cameraPo
                 beta = (-(point.x-v2.x)*(v0.y-v2.y)+(point.y-v2.y)*(v0.x-v2.x))/(-(v1.x-v2.x)*(v0.y-v2.y)+(v1.y-v2.y)*(v0.x-v2.x));
                 gamma = 1-alpha-beta;
             }
-
             glm::vec3 lightDirection0 = glm::normalize(v0 - LP);
             glm::vec3 lightDirection1 = glm::normalize(v1 - LP);
             glm::vec3 lightDirection2 = glm::normalize(v2 - LP);
@@ -994,6 +987,98 @@ void drawPhoneBox(DrawingWindow &window, float FL, float S, glm::vec3 cameraPosi
     }
 }
 
+std::vector<ModelTriangle> loadNewOBJFile(const std::vector<string>& objFilenames, float SF, bool t){
+    std::vector<ModelTriangle> triangle;
+    for(const string& objFilename : objFilenames){
+        string fileText;
+        std::vector<glm::vec3> points;
+        std::vector<TexturePoint> vt;
+        std::string colourName;
+        std::map<string,Colour> palette;
+        if(objFilename == "textured-cornell-box.obj"){
+            palette = readMaterialFile("textured-cornell-box.mtl");
+        }
+
+        ifstream MyReadFile(objFilename);
+        while (getline(MyReadFile, fileText)){
+            std::vector<std::string> splitDelimiter = split(fileText,' ');
+            if(splitDelimiter[0]=="v"){
+                float x = std::stof(splitDelimiter[1]);
+                float y = std::stof(splitDelimiter[2]);
+                float z = std::stof(splitDelimiter[3]);
+                glm::vec3 p = {x * SF, y * SF, z * SF};
+                //cout<<p.x<<endl;
+                points.push_back(p);
+            }
+            if(splitDelimiter[0]=="f"){
+                //std::cout<<s[3]<<std::endl;
+                if(objFilename == "textured-cornell-box.obj") {
+                    int fx = std::stoi(splitDelimiter[1]);
+                    int fy = std::stoi(splitDelimiter[2]);
+                    int fz = std::stoi(splitDelimiter[3]);
+                    std::array<glm::vec3,3> face = {points[fx-1],points[fy-1],points[fz-1]};
+                    ModelTriangle m = ModelTriangle();
+                    m.vertices = face;
+                    m.colour = palette[colourName];
+                    m.colour.name = colourName;
+                    if (m.colour.name == "Cobbles") {
+                        std::vector<std::string> f0 = split(splitDelimiter[1], '/');
+                        std::vector<std::string> f1 = split(splitDelimiter[2], '/');
+                        std::vector<std::string> f2 = split(splitDelimiter[3], '/');
+                        m.texturePoints = {vt[(std::stoi(f0[1])) - 1], vt[(std::stoi(f1[1])) - 1],
+                                           vt[(std::stoi(f2[1])) - 1]};
+                    }
+                    //cout<<m<<endl;
+                    m.normal=glm::normalize(glm::cross(m.vertices[2]-m.vertices[0],m.vertices[1]-m.vertices[0]));
+                    // cout<<m.colour.name<<endl;
+                    triangle.push_back(m);
+                }else if(objFilename == "sphere.obj"){
+                    glm::vec3 move (0.4,1.2,-0.2);
+                    int fx = std::stoi(splitDelimiter[1]);
+                    int fy = std::stoi(splitDelimiter[2]);
+                    int fz = std::stoi(splitDelimiter[3]);
+                    std::array<glm::vec3,3> face = {points[fx-1]-move,points[fy-1]-move,points[fz-1]-move};
+                    ModelTriangle m = ModelTriangle();
+                    m.vertices = face;
+                    m.colour = Colour(135,206,235);
+                    m.colour.name = "SkyBlue";
+                    //cout<<m<<endl;
+                    m.normal=glm::normalize(glm::cross(m.vertices[2]-m.vertices[0],m.vertices[1]-m.vertices[0]));
+                    // cout<<m.colour.name<<endl;
+                    triangle.push_back(m);
+                }else if(objFilename == "logo.obj"){
+                    glm::vec3 move (-0.2234,-0.2678,0.9345);
+                    int fx = std::stoi(splitDelimiter[1]);
+                    int fy = std::stoi(splitDelimiter[2]);
+                    int fz = std::stoi(splitDelimiter[3]);
+                    std::array<glm::vec3,3> face = {points[fx-1]/250.0f-move,points[fy-1]/250.0f-move,points[fz-1]/250.0f-move};
+                    ModelTriangle m = ModelTriangle();
+                    m.vertices = face;
+                    m.colour = Colour(237,145,33);
+                    m.colour.name = "Carrot";
+                    //cout<<m<<endl;
+                    m.normal=glm::normalize(glm::cross(m.vertices[2]-m.vertices[0],m.vertices[1]-m.vertices[0]));
+                    // cout<<m.colour.name<<endl;
+                    triangle.push_back(m);
+                }
+
+            }
+            if(splitDelimiter[0]=="vt"){
+                float x = std::stof(splitDelimiter[1]);
+                float y = std::stof(splitDelimiter[2]);
+                TexturePoint p = {x, y};
+                vt.push_back(p);
+            }
+            if(splitDelimiter[0]=="usemtl"){
+                //std::cout<<splitDelimiter[1]<<std::endl;
+                colourName = splitDelimiter[1];
+            }
+        }
+        MyReadFile.close();
+    }
+    return triangle;
+}
+
 std::vector<ModelTriangle> loadOBJFile(const string& objFilename, float SF, bool t){
 	string fileText;
 	std::vector<ModelTriangle> triangle;
@@ -1057,12 +1142,13 @@ void handleEvent(SDL_Event event, DrawingWindow &window) {
         zBuffer();
         bool rotation = false;
         bool transform = true;
-		std::vector<ModelTriangle> l= loadOBJFile("textured-cornell-box.obj",scalingFactor,true);
+        std::vector<std::string> objFileNames {"textured-cornell-box.obj", "sphere.obj", "logo.obj"};
+		std::vector<ModelTriangle> l= loadNewOBJFile(objFileNames,scalingFactor,true);
 		std::vector<ModelTriangle> sphere= loadOBJFile("sphere.obj",scalingFactor,false);
 		if (event.key.keysym.sym == SDLK_LEFT) {
-			std::cout << "LEFT" << std::endl;
+			std::cout << "light" << std::endl;
 			window.clearPixels();
-            boxCameraPosition.x = boxCameraPosition.x + move;
+            lightPosition.z = lightPosition.z + move;
 			//rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
             ray(window, focalLength, scalar, boxCameraPosition, l, lightPosition, cameraOrientation);
         }else if (event.key.keysym.sym == SDLK_RIGHT){
