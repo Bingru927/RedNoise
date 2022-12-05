@@ -580,9 +580,30 @@ Colour textureMapFloor(const TextureMap& file, const RayTriangleIntersection& cl
     return c;
 }
 
+TextureMap file = TextureMap("chessboard.ppm");
 
+float fresnel(glm::vec3 incident, glm::vec3 normal, float refractiveIndex) {
+    float cosi = glm::dot(incident, normal);
+    float etai = 1;
+    float etat = refractiveIndex;
+    if (cosi > 0){
+        std::swap(etai, etat);
+    }
+    float eta = etai / etat;
+    float sint = eta * sqrtf(std::max(0.f, 1 - cosi * cosi));
+    if (sint >= 1){
+        return 1;
+    } else {
+        float cost = sqrtf(std::max(0.f, 1 - sint * sint));
+        cosi = fabsf(cosi);
+        float Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
+        float Rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
+        return (Rs * Rs + Rp * Rp) * 0.5f;
+    }
+    return 0;
+}
 
-Colour shootRay(glm::vec3 cameraPosition, glm::vec3 rayDirection, const std::vector<ModelTriangle>& triangle,glm::vec3 LP,float sourceStrength, int index, TextureMap file) {
+Colour shootRay(glm::vec3 cameraPosition, glm::vec3 rayDirection, const std::vector<ModelTriangle>& triangle,glm::vec3 LP,float sourceStrength, int index) {
     if(index >= 5) {return {255, 255, 255};}
     float specularExponent = 256.0f;
     RayTriangleIntersection closetIntersection = getClosetsIntersection(cameraPosition, rayDirection, triangle);
@@ -593,20 +614,58 @@ Colour shootRay(glm::vec3 cameraPosition, glm::vec3 rayDirection, const std::vec
     float PL = sourceStrength / float((4 * PI * lightDistance * lightDistance));
     float lightAngle = max(0.0f, glm::dot(closetIntersection.intersectedTriangle.normal, lightDirection));
     glm::vec3 view = glm::normalize(closetIntersection.intersectionPoint - cameraPosition);
-    glm::vec3 reflection = lightDirection - 2.0f * (closetIntersection.intersectedTriangle.normal *
-                                                    glm::dot(lightDirection,
-                                                             closetIntersection.intersectedTriangle.normal));
+    glm::vec3 reflection = lightDirection - 2.0f * (closetIntersection.intersectedTriangle.normal * glm::dot(lightDirection,closetIntersection.intersectedTriangle.normal));
     float specularLight = glm::pow(glm::dot(view, reflection), specularExponent);
     float lightIntensity = PL * lightAngle + specularLight + ambientStrength;
     float num = softShadow(closetIntersection, triangle, LP);
     Colour c = closetIntersection.intersectedTriangle.colour;
     if (closetIntersection.intersectedTriangle.colour.name == "Yellow") {
-        glm::vec3 mirrorReflection = glm::normalize(view-2.0f * closetIntersection.intersectedTriangle.normal * glm::dot(view,closetIntersection.intersectedTriangle.normal));
-        return shootRay(closetIntersection.intersectionPoint,mirrorReflection,triangle,LP,sourceStrength, index+1, file);
-    }
-    if(closetIntersection.intersectedTriangle.colour.name=="Cobbles"){
+        glm::vec3 mirrorReflection = glm::normalize(rayDirection-2.0f * closetIntersection.intersectedTriangle.normal * glm::dot(rayDirection,closetIntersection.intersectedTriangle.normal));
+        return shootRay(closetIntersection.intersectionPoint,mirrorReflection,triangle,LP,sourceStrength, index+1);
+    } else if(closetIntersection.intersectedTriangle.colour.name=="Cobbles"){
+        //closetIntersection.intersectedTriangle.colour.name=="Cobbles"
         c = textureMapFloor(file,closetIntersection);
         //cout<<1<<endl;
+    } else if (closetIntersection.intersectedTriangle.colour.name == "Blue") {
+        // glass = reflection + refraction
+        // reflection
+        glm::vec3 glassReflection = glm::normalize(rayDirection - 2.0f * closetIntersection.intersectedTriangle.normal * glm::dot(rayDirection,closetIntersection.intersectedTriangle.normal));
+        Colour reflectionColour = shootRay(closetIntersection.intersectionPoint, glassReflection, triangle, LP, sourceStrength, index + 1);
+        // refraction
+        // Calculate the refraction direction
+        float air = 1.0f;
+        float glass = 1.3f;
+        glm::vec3 incidentRay = rayDirection;
+        glm::vec3 normal = closetIntersection.intersectedTriangle.normal;
+        glm::vec3 direction (0, 0, 0);
+        float angle = std::fmax(std::fmin(glm::dot(incidentRay, normal), 1.0f), -1.0f);
+        float ratio = 0.0f;
+        float k = 0.0f;
+        if(angle > 0) {
+            std::swap(glass, air);
+            normal = -normal;
+        }
+        ratio = air / glass;
+        k = 1 - ratio * ratio * (1 - abs(angle) * abs(angle));
+        if(k >= 0) {
+            direction = glm::normalize(incidentRay * ratio + normal * (ratio * angle - sqrt(k)));
+        }
+        glm::vec3 adjustPoint = closetIntersection.intersectionPoint;
+        if(angle < 0) {
+            adjustPoint = closetIntersection.intersectionPoint - closetIntersection.intersectedTriangle.normal * float(0.0001);
+        } else {
+            adjustPoint = closetIntersection.intersectionPoint + closetIntersection.intersectedTriangle.normal * float(0.0001);
+        }
+        Colour refractionColour = shootRay(adjustPoint, direction, triangle, LP, sourceStrength, index + 1);
+        // mix colour
+        // fresnel
+        float reflectiveConstant = fresnel(rayDirection, closetIntersection.intersectedTriangle.normal, 1.5f);
+        float refractiveConstant = 1-reflectiveConstant;
+        Colour mixColour;
+        mixColour.red = int(reflectiveConstant * float(reflectionColour.red) + refractiveConstant * float(refractionColour.red));
+        mixColour.green = int(reflectiveConstant * float(reflectionColour.green) + refractiveConstant * float(refractionColour.green));
+        mixColour.blue = int(reflectiveConstant * float(reflectionColour.blue) + refractiveConstant * float(refractionColour.blue));
+        return mixColour;
     }
     float red = std::max(0.0f, std::min(255.0f, float((c.red)) * lightIntensity));
     float green = std::max(0.0f, std::min(255.0f, float((c.green)) * lightIntensity));
@@ -615,23 +674,24 @@ Colour shootRay(glm::vec3 cameraPosition, glm::vec3 rayDirection, const std::vec
 //    auto shadowValue = ambientStrength;
 
     if (closetIntersection.triangleIndex != light.triangleIndex && closetIntersection.intersectedTriangle.colour.name != "Yellow") {
+        if(light.intersectedTriangle.colour.name == "Blue") {
+            shadowValue = 0.8;
+        }
         red = red * shadowValue;
         green = green * shadowValue;
         blue = blue * shadowValue;
     }
+
     return {int(round(red)),int(round(green)),int(round(blue))};
 }
 
-
-
 void ray(DrawingWindow &window, float FL, float S, glm::vec3 cameraPosition, const std::vector<ModelTriangle>& triangle, glm::vec3 LP,glm::mat3x3 orientation){
-    TextureMap file = TextureMap("chessboard.ppm");
     float sourceStrength = 16;
 	for(int y=0; y<HEIGHT; y++){
 		for(int x=0; x<WIDTH; x++){
 			glm::vec3 worldPoint = (getWorldPoint(CanvasPoint(float(x),float(y)), FL, 2.0f*HEIGHT/3, cameraPosition, orientation));
             glm::vec3 rayDirection = glm::normalize(worldPoint-cameraPosition)*glm::inverse(orientation);
-            Colour c = shootRay(cameraPosition,rayDirection,triangle,LP,sourceStrength, 1, file);
+            Colour c = shootRay(cameraPosition,rayDirection,triangle,LP,sourceStrength, 1);
 			uint32_t color = (255 << 24) + (int(round(c.red)) << 16) + (int(round(c.green)) << 8) + int(round(c.blue));
 			window.setPixelColour(x,y,color);
 		}
@@ -1034,6 +1094,7 @@ std::vector<ModelTriangle> loadNewOBJFile(const std::vector<string>& objFilename
                     triangle.push_back(m);
                 }else if(objFilename == "sphere.obj"){
                     glm::vec3 move (0.4,1.2,-0.2);
+                    //glm::vec3 move (99,99,99);
                     int fx = std::stoi(splitDelimiter[1]);
                     int fy = std::stoi(splitDelimiter[2]);
                     int fz = std::stoi(splitDelimiter[3]);
@@ -1291,10 +1352,10 @@ void handleEvent(SDL_Event event, DrawingWindow &window) {
 			canvas.v1().texturePoint = {395,380};
 			canvas.v2().texturePoint = {65,330};
 			CanvasTriangle canvasT = arrangeTriangle(canvas);
-			TextureMap file = TextureMap("texture.ppm");
+			TextureMap textureFile = TextureMap("texture.ppm");
 			glm::mat3x3 affineT = affine(canvasT);
-			//affineTransformation(window, canvasT, CanvasPoint(300, 230), affineT, file);
-			textureMapper(window,canvasT,affineT,file);
+			//affineTransformation(window, canvasT, CanvasPoint(300, 230), affineT, textureFile);
+			textureMapper(window,canvasT,affineT,textureFile);
 			//drawTriangle(window,canvas);
 		}else if (event.key.keysym.sym == SDLK_p){
 			window.clearPixels();

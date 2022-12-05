@@ -23,8 +23,6 @@
     <list default="true" id="954bd929-b8da-4224-b8c4-5c140efad7c2" name="变更" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Testing/Temporary/LastTest.log" beforeDir="false" afterPath="$PROJECT_DIR$/Testing/Temporary/LastTest.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/output.bmp" beforeDir="false" afterPath="$PROJECT_DIR$/output.bmp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/output.ppm" beforeDir="false" afterPath="$PROJECT_DIR$/output.ppm" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/RedNoise.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/RedNoise.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -146,7 +144,13 @@
       <workItem from="1669657326425" duration="68000" />
       <workItem from="1669742039569" duration="59000" />
       <workItem from="1669765353620" duration="904000" />
-      <workItem from="1669845876058" duration="13209000" />
+      <workItem from="1669845876058" duration="16453000" />
+      <workItem from="1669956079680" duration="1742000" />
+      <workItem from="1669958347430" duration="850000" />
+      <workItem from="1669961005478" duration="14000" />
+      <workItem from="1669961037269" duration="1458000" />
+      <workItem from="1670087788342" duration="391000" />
+      <workItem from="1670272594185" duration="169000" />
     </task>
     <servers />
   </component>
