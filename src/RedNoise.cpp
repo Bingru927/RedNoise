@@ -19,8 +19,8 @@
 using namespace std;
 
 
-#define WIDTH 960//320
-#define HEIGHT 720//240
+#define WIDTH 320//960//320
+#define HEIGHT 240//720//240
 #define PI 3.1415926
 
 
@@ -608,6 +608,64 @@ float fresnel(glm::vec3 incident, glm::vec3 normal, float refractiveIndex) {
     return 0;
 }
 
+glm::vec3 vertexNormal(const std::vector<ModelTriangle>& triangle,glm::vec3 point){
+    glm::vec3 vertexN;
+    float count = 0;
+    glm::vec3 verticeSum;
+    for(ModelTriangle i : triangle) {
+        if(i.vertices[0] == point || i.vertices[1] == point || i.vertices[2] == point) {
+            verticeSum+=i.normal;
+            count++;
+        }
+    }
+    vertexN = verticeSum * (1/count);
+    return glm::normalize(vertexN);
+}
+
+Colour drawPhoneSphereInBox(RayTriangleIntersection closetIntersection, const std::vector<ModelTriangle>& triangle, glm::vec3 cameraPosition, glm::vec3 LP, Colour c){
+    float specularExponent = 256.0f;
+    float sourceStrength = 8;
+    glm::vec3 v0;
+    glm::vec3 v1;
+    glm::vec3 v2;
+
+    v0 = closetIntersection.intersectedTriangle.vertices[0];
+    v1 = closetIntersection.intersectedTriangle.vertices[1];
+    v2 = closetIntersection.intersectedTriangle.vertices[2];
+
+    glm::vec3 lightDirection = glm::normalize(closetIntersection.intersectionPoint - LP);
+    float lightDistance = glm::length(LP - closetIntersection.intersectionPoint);
+    float PL = sourceStrength / float(( 4 *PI * lightDistance * lightDistance));
+
+    glm::vec3 point = closetIntersection.intersectionPoint;
+    glm::vec3 n0 = vertexNormal(triangle, closetIntersection.intersectedTriangle.vertices[0]);
+    glm::vec3 n1 = vertexNormal(triangle,closetIntersection.intersectedTriangle.vertices[1]);
+    glm::vec3 n2 = vertexNormal(triangle,closetIntersection.intersectedTriangle.vertices[2]);
+
+    float alpha = (-(point.x-v1.x)*(v2.y-v1.y)+(point.y-v1.y)*(v2.x-v1.x))/(-(v0.x-v1.x)*(v2.y-v1.y)+(v0.y-v1.y)*(v2.x-v1.x));
+    float beta = (-(point.x-v2.x)*(v0.y-v2.y)+(point.y-v2.y)*(v0.x-v2.x))/(-(v1.x-v2.x)*(v0.y-v2.y)+(v1.y-v2.y)*(v0.x-v2.x));
+    float gamma = 1-alpha-beta;
+
+    glm::vec3 normal = n0*alpha + n1*beta + gamma*n2;
+
+    float lightAngle = max(0.0f,glm::dot(normal, lightDirection));
+    glm::vec3 view = glm::normalize(cameraPosition - closetIntersection.intersectionPoint);
+    glm::vec3 reflection = lightDirection - 2.0f*(normal * glm::dot(lightDirection, normal));
+    float specularLight = glm::pow(glm::dot(view,reflection),specularExponent);
+    float brightness = PL * lightAngle + specularLight + ambientStrength;
+
+    float red = std::min(255.0f, c.red * brightness);
+    float green = std::min(255.0f, c.green * brightness);
+    float blue = std::min(255.0f, c.blue * brightness);
+    //判断点是否在圆内
+    if(closetIntersection.intersectionPoint == glm::vec3(0, 0, 0)) {
+        red = 0;
+        green = 0;
+        blue = 0;
+    }
+    return Colour(int(round(red)), (int(round(green))), int(round(blue)));
+}
+
 Colour shootRay(glm::vec3 cameraPosition, glm::vec3 rayDirection, const std::vector<ModelTriangle>& triangle,glm::vec3 LP,float sourceStrength, int index) {
     if(index >= 5) {return {255, 255, 255};}
     float specularExponent = 256.0f;
@@ -622,7 +680,7 @@ Colour shootRay(glm::vec3 cameraPosition, glm::vec3 rayDirection, const std::vec
     glm::vec3 reflection = lightDirection - 2.0f * (closetIntersection.intersectedTriangle.normal * glm::dot(lightDirection,closetIntersection.intersectedTriangle.normal));
     float specularLight = glm::pow(glm::dot(view, reflection), specularExponent);
     float lightIntensity = PL * lightAngle + specularLight + ambientStrength;
-    //float num = softShadow(closetIntersection, triangle, LP);
+    float num = softShadow(closetIntersection, triangle, LP);
     Colour c = closetIntersection.intersectedTriangle.colour;
     if (closetIntersection.intersectedTriangle.colour.name == "Yellow") {
         glm::vec3 mirrorReflection = glm::normalize(rayDirection-2.0f * closetIntersection.intersectedTriangle.normal * glm::dot(rayDirection,closetIntersection.intersectedTriangle.normal));
@@ -685,6 +743,7 @@ Colour shootRay(glm::vec3 cameraPosition, glm::vec3 rayDirection, const std::vec
         int green = (colour32 >> 8) & 0xff;
         int red = (colour32 >> 16) & 0xff;
         c = Colour(red, green, blue);
+        c = drawPhoneSphereInBox(closetIntersection, triangle, cameraPosition, LP, c);
         return c;
     } else if (closetIntersection.intersectedTriangle.colour.name == "Carrot") {
         c = textureMapFloor(logoTexture,closetIntersection);
@@ -733,17 +792,17 @@ Colour shootRay(glm::vec3 cameraPosition, glm::vec3 rayDirection, const std::vec
     float red = std::max(0.0f, std::min(255.0f, float((c.red)) * lightIntensity));
     float green = std::max(0.0f, std::min(255.0f, float((c.green)) * lightIntensity));
     float blue = std::max(0.0f, std::min(255.0f, float((c.blue)) * lightIntensity));
-    //auto shadowValue = glm::clamp<float>((0.6f/ambientStrength*num),0,1);
+    auto shadowValue = glm::clamp<float>((0.6f/ambientStrength*num),0,1);
 //    auto shadowValue = ambientStrength;
 
-    /* if (closetIntersection.triangleIndex != light.triangleIndex && closetIntersection.intersectedTriangle.colour.name != "Yellow") {
+    if (closetIntersection.triangleIndex != light.triangleIndex && closetIntersection.intersectedTriangle.colour.name != "Yellow") {
         if(light.intersectedTriangle.colour.name == "Blue") {
             shadowValue = 0.8;
         }
         red = red * shadowValue;
         green = green * shadowValue;
         blue = blue * shadowValue;
-    } */
+    }
 
     return {int(round(red)),int(round(green)),int(round(blue))};
 }
@@ -796,20 +855,6 @@ void drawFlatSphere(DrawingWindow &window, float FL, float S, glm::vec3 cameraPo
 			window.setPixelColour(x,y,color);
 		}
 	}
-}
-
-glm::vec3 vertexNormal(const std::vector<ModelTriangle>& triangle,glm::vec3 point){
-    glm::vec3 vertexN;
-    float count = 0;
-    glm::vec3 verticeSum;
-    for(ModelTriangle i : triangle) {
-        if(i.vertices[0] == point || i.vertices[1] == point || i.vertices[2] == point) {
-            verticeSum+=i.normal;
-            count++;
-        }
-    }
-    vertexN = verticeSum * (1/count);
-    return glm::normalize(vertexN);
 }
 
 void drawGouraudSphere(DrawingWindow &window, float FL, float S, glm::vec3 cameraPosition, const std::vector<ModelTriangle>& triangle, glm::vec3 LP,glm::mat3x3 orientation){

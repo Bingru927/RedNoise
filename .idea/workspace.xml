@@ -20,13 +20,7 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="954bd929-b8da-4224-b8c4-5c140efad7c2" name="变更" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Testing/Temporary/LastTest.log" beforeDir="false" afterPath="$PROJECT_DIR$/Testing/Temporary/LastTest.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/output.bmp" beforeDir="false" afterPath="$PROJECT_DIR$/output.bmp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/output.ppm" beforeDir="false" afterPath="$PROJECT_DIR$/output.ppm" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/RedNoise.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/RedNoise.cpp" afterDir="false" />
-    </list>
+    <list default="true" id="954bd929-b8da-4224-b8c4-5c140efad7c2" name="变更" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -155,6 +149,7 @@
       <workItem from="1670272594185" duration="169000" />
       <workItem from="1670305469822" duration="115000" />
       <workItem from="1670352816095" duration="22000" />
+      <workItem from="1670371521017" duration="1000" />
     </task>
     <servers />
   </component>
