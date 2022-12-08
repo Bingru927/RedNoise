@@ -33,13 +33,13 @@
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 65,
+				"line" : 74,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 74,
+				"line" : 65,
 				"parent" : 0
 			},
 			{
@@ -183,11 +183,20 @@
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "-Wl,-lasan",
+				"fragment" : "-L/opt/homebrew/lib",
+				"role" : "libraryPath"
+			},
+			{
+				"fragment" : "-Wl,-rpath,/opt/homebrew/lib",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 3,
+				"fragment" : "-Wl,-lasan",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
 				"fragment" : "/opt/homebrew/lib/libSDL2.dylib",
 				"role" : "libraries"
 			}

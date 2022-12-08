@@ -19,9 +19,10 @@
 using namespace std;
 
 
-#define WIDTH 320//960//320
-#define HEIGHT 240//720//240
+#define WIDTH 640//960//320
+#define HEIGHT 480//720//240
 #define PI 3.1415926
+int a = 80;
 
 
 float buffer[HEIGHT][WIDTH];
@@ -40,13 +41,17 @@ glm::vec3 LP(0, 0.5, 0.5);
 TextureMap jupiter("Jupiter.ppm");
 TextureMap logoTexture("logo-texture.ppm");
 glm::vec3 sphereCenterPoint;
-float sphereRadius;
+float sphereRadius = 0.0;
+float rotateSphereY = 0.0;
+float translateSphere = 0.0;
 
 float scalar = 2.0f*HEIGHT/3;
 float rayTraceScalar = 50.0f;
 float scalingFactor = 0.35;
 float focalLength = 2.0;
 float ambientStrength = 0.4;
+
+float sphereMove = 0.0;
 
 //void draw(DrawingWindow &window) {
 //	window.clearPixels();
@@ -169,9 +174,9 @@ CanvasTriangle strokedTriangles(){
 
 
 void drawTriangle(DrawingWindow &window,CanvasTriangle triangle){
-    lineDraw(window,triangle.v0(),triangle.v1(),{255,255,255});
-	lineDraw(window,triangle.v1(),triangle.v2(),{255,255,255});
-	lineDraw(window,triangle.v2(),triangle.v0(),{255,255,255});
+    lineDraw(window,triangle.v0(),triangle.v1(),{rand()%255,rand()%255,rand()%255});
+	lineDraw(window,triangle.v1(),triangle.v2(),{rand()%255,rand()%255,rand()%255});
+	lineDraw(window,triangle.v2(),triangle.v0(),{rand()%255,rand()%255,rand()%255});
 }
 
 CanvasTriangle arrangeTriangle(CanvasTriangle triangle){
@@ -223,10 +228,6 @@ unsigned int textureMapperColor(DrawingWindow &window, CanvasTriangle triangle, 
 	int index = int(texturePoint.y) * int(textureMap.width) + int(texturePoint.x);
 	uint32_t colour = textureMap.pixels[index - 1];
 	return colour;
-	// 求point的重力坐标
-	// 对应到texture的三角里面
-	// 知道对应坐标 定位pixel colour
-	// return 颜色
 }
 
 
@@ -252,10 +253,6 @@ glm::mat3x3 affine(CanvasTriangle t){
 	//std::cout<<glm::to_string(affineT)<<std::endl;
 	return affineT;
 }
-
-
-
-
 
 void affineTransformation(DrawingWindow &window, CanvasTriangle triangle, CanvasPoint point,glm::mat3x3 affineT, TextureMap textureMap){
 	//inverse of triangle
@@ -318,8 +315,6 @@ std::map<string,Colour> readMaterialFile(const string& fileName){
  return palette;
 }
 
-
-//把世界坐标变成相机坐标
 glm::vec3 getCameraPoint(glm::vec3 vertexPoint,glm::vec3 cameraPosition){
 	vertexPoint.x = vertexPoint.x-cameraPosition.x;
 	vertexPoint.y = vertexPoint.y-cameraPosition.y;
@@ -360,7 +355,6 @@ void wireFrameRender(DrawingWindow &window, glm::vec3 cameraPosition, const std:
 }
 
 void setBufferTriangle(DrawingWindow &windows,CanvasPoint top,CanvasPoint v1,CanvasPoint v2, const Colour& c){
-    //一个三角形被分成两个平底三角形，判断是往top画还是往bottom画
     float d = abs(v1.y-top.y);
     CanvasPoint left=top;
     CanvasPoint right=top;
@@ -657,7 +651,6 @@ Colour drawPhoneSphereInBox(RayTriangleIntersection closetIntersection, const st
     float red = std::min(255.0f, c.red * brightness);
     float green = std::min(255.0f, c.green * brightness);
     float blue = std::min(255.0f, c.blue * brightness);
-    //判断点是否在圆内
     if(closetIntersection.intersectionPoint == glm::vec3(0, 0, 0)) {
         red = 0;
         green = 0;
@@ -682,14 +675,14 @@ Colour shootRay(glm::vec3 cameraPosition, glm::vec3 rayDirection, const std::vec
     float lightIntensity = PL * lightAngle + specularLight + ambientStrength;
     float num = softShadow(closetIntersection, triangle, LP);
     Colour c = closetIntersection.intersectedTriangle.colour;
-    if (closetIntersection.intersectedTriangle.colour.name == "Yellow") {
+    if (closetIntersection.intersectedTriangle.colour.name == "Magenta") {
         glm::vec3 mirrorReflection = glm::normalize(rayDirection-2.0f * closetIntersection.intersectedTriangle.normal * glm::dot(rayDirection,closetIntersection.intersectedTriangle.normal));
         return shootRay(closetIntersection.intersectionPoint,mirrorReflection,triangle,LP,sourceStrength, index+1);
     } else if(closetIntersection.intersectedTriangle.colour.name=="Cobbles"){
         //closetIntersection.intersectedTriangle.colour.name=="Cobbles"
         c = textureMapFloor(file,closetIntersection);
         //cout<<1<<endl;
-    } else if (closetIntersection.intersectedTriangle.colour.name == "Blue") {
+    } else if (closetIntersection.intersectedTriangle.colour.name == "Red") {
         // glass = reflection + refraction
         // reflection
         glm::vec3 glassReflection = glm::normalize(rayDirection - 2.0f * closetIntersection.intersectedTriangle.normal * glm::dot(rayDirection,closetIntersection.intersectedTriangle.normal));
@@ -731,7 +724,16 @@ Colour shootRay(glm::vec3 cameraPosition, glm::vec3 rayDirection, const std::vec
         mixColour.blue = int(reflectiveConstant * float(reflectionColour.blue) + refractiveConstant * float(refractionColour.blue));
         return mixColour;
     } else if (closetIntersection.intersectedTriangle.colour.name == "SkyBlue") {
-        glm::vec3 spherePoint = (closetIntersection.intersectionPoint - sphereCenterPoint) / sphereRadius;
+        float rotateY = glm::radians(rotateSphereY);
+        glm::mat3 rotationYMatrix = glm::mat3{{cos(rotateY), 0, sin(rotateY)},
+                                        {0,              1,             0},
+                                        {-sin(rotateY), 0, cos(rotateY)}};
+        glm::vec3 intersectionPoint = closetIntersection.intersectionPoint;
+        glm::vec3 pointTranslate = intersectionPoint - sphereCenterPoint;
+        pointTranslate = rotationYMatrix * pointTranslate;
+        intersectionPoint = pointTranslate + sphereCenterPoint;
+
+        glm::vec3 spherePoint = (intersectionPoint - sphereCenterPoint) / sphereRadius;
         float PHI = atan2(spherePoint.z, spherePoint.x);
         float THETA = asin(spherePoint.y);
         float u = 1-(PHI + 3.1415) / (2*3.1415);
@@ -793,10 +795,10 @@ Colour shootRay(glm::vec3 cameraPosition, glm::vec3 rayDirection, const std::vec
     float green = std::max(0.0f, std::min(255.0f, float((c.green)) * lightIntensity));
     float blue = std::max(0.0f, std::min(255.0f, float((c.blue)) * lightIntensity));
     auto shadowValue = glm::clamp<float>((0.6f/ambientStrength*num),0,1);
-//    auto shadowValue = ambientStrength;
+    //auto shadowValue = ambientStrength;
 
     if (closetIntersection.triangleIndex != light.triangleIndex && closetIntersection.intersectedTriangle.colour.name != "Yellow") {
-        if(light.intersectedTriangle.colour.name == "Blue") {
+        if(light.intersectedTriangle.colour.name == "Red") {
             shadowValue = 0.8;
         }
         red = red * shadowValue;
@@ -807,8 +809,20 @@ Colour shootRay(glm::vec3 cameraPosition, glm::vec3 rayDirection, const std::vec
     return {int(round(red)),int(round(green)),int(round(blue))};
 }
 
-void ray(DrawingWindow &window, float FL, float S, glm::vec3 cameraPosition, const std::vector<ModelTriangle>& triangle, glm::vec3 LP,glm::mat3x3 orientation){
+void ray(DrawingWindow &window, float FL, float S, glm::vec3 cameraPosition, std::vector<ModelTriangle>& triangle, glm::vec3 LP,glm::mat3x3 orientation){
     float sourceStrength = 16;
+    rotateSphereY += 25.0f;
+    translateSphere += sphereMove;
+    for(size_t i = 0; i < triangle.size(); i++) {
+        if(triangle[i].colour.name == "SkyBlue") {
+            for (int j = 0; j < 3; j++) {
+                triangle[i].vertices[j].y = triangle[i].vertices[j].y + translateSphere;
+            }
+        }
+    }
+    sphereCenterPoint.y += translateSphere;
+
+
 	for(int y=0; y<HEIGHT; y++){
 		for(int x=0; x<WIDTH; x++){
 			glm::vec3 worldPoint = (getWorldPoint(CanvasPoint(float(x),float(y)), FL, 2.0f*HEIGHT/3, cameraPosition, orientation));
@@ -845,7 +859,6 @@ void drawFlatSphere(DrawingWindow &window, float FL, float S, glm::vec3 cameraPo
 			float red = std::min(255.0f,(255)*lightIntensity);
 			float green = std::min(255.0f,(0)*lightIntensity);
 			float blue = std::min(255.0f,(0)*lightIntensity);
-			//判断点是否在圆内
 			if(r.intersectionPoint == glm::vec3(0, 0, 0)) {
                 red = 0;
                 green = 0;
@@ -890,7 +903,6 @@ void drawGouraudSphere(DrawingWindow &window, float FL, float S, glm::vec3 camer
             glm::vec3 n0 = vertexNormal(triangle, closetIntersection.intersectedTriangle.vertices[0]);
             glm::vec3 n1 = vertexNormal(triangle,closetIntersection.intersectedTriangle.vertices[1]);
             glm::vec3 n2 = vertexNormal(triangle,closetIntersection.intersectedTriangle.vertices[2]);
-            //重心坐标就是做线性插值
             float alpha = (-(point.x-v1.x)*(v2.y-v1.y)+(point.y-v1.y)*(v2.x-v1.x))/(-(v0.x-v1.x)*(v2.y-v1.y)+(v0.y-v1.y)*(v2.x-v1.x));
             float beta = (-(point.x-v2.x)*(v0.y-v2.y)+(point.y-v2.y)*(v0.x-v2.x))/(-(v1.x-v2.x)*(v0.y-v2.y)+(v1.y-v2.y)*(v0.x-v2.x));
             float gamma = 1-alpha-beta;
@@ -921,7 +933,6 @@ void drawGouraudSphere(DrawingWindow &window, float FL, float S, glm::vec3 camer
             float red = std::min(255.0f,(255)*lightIntensity);
             float green = std::min(255.0f,(0)*lightIntensity);
             float blue = std::min(255.0f,(0)*lightIntensity);
-            //判断点是否在圆内
             if(closetIntersection.intersectionPoint == glm::vec3(0, 0, 0)) {
                 red = 0;
                 green = 0;
@@ -1074,7 +1085,6 @@ void drawPhoneSphere(DrawingWindow &window, float FL, float S, glm::vec3 cameraP
             float red = std::min(255.0f, (255) * brightness);
             float green = std::min(255.0f, (0) * brightness);
             float blue = std::min(255.0f, (0) * brightness);
-            //判断点是否在圆内
             if(closetIntersection.intersectionPoint == glm::vec3(0, 0, 0)) {
                 red = 0;
                 green = 0;
@@ -1158,7 +1168,7 @@ void drawPhoneBox(DrawingWindow &window, float FL, float S, glm::vec3 cameraPosi
 void get_xyz(double x1,double y1,double z1,
              double x2,double y2,double z2,
              double x3,double y3,double z3,
-             double x4,double y4,double z4)//空间四点确定球心坐标(克莱姆法则)
+             double x4,double y4,double z4)/
 {
     double x, y, z;
     double a11,a12,a13,a21,a22,a23,a31,a32,a33,b1,b2,b3,d,d1,d2,d3;
@@ -1243,7 +1253,7 @@ std::vector<ModelTriangle> loadNewOBJFile(const std::vector<string>& objFilename
                     // cout<<m.colour.name<<endl;
                     triangle.push_back(m);
                 }else if(objFilename == "logo.obj"){
-                    glm::vec3 move (-0.2234,-0.1987,0.9957);
+                    glm::vec3 move (-0.2234,-0.1987,0.95);
                     int fx = std::stoi(splitDelimiter[1]);
                     int fy = std::stoi(splitDelimiter[2]);
                     int fz = std::stoi(splitDelimiter[3]);
@@ -1354,85 +1364,126 @@ void handleEvent(SDL_Event event, DrawingWindow &window) {
 		std::vector<ModelTriangle> l= loadNewOBJFile(objFileNames,scalingFactor,true);
 		std::vector<ModelTriangle> sphere= loadOBJFile("sphere.obj",scalingFactor,false);
 		if (event.key.keysym.sym == SDLK_LEFT) {
-			std::cout << "light" << std::endl;
-			window.clearPixels();
-            lightPosition.z = lightPosition.z + move;
-			//rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
-            ray(window, focalLength, scalar, boxCameraPosition, l, lightPosition, cameraOrientation);
-        }else if (event.key.keysym.sym == SDLK_RIGHT){
-			std::cout << "RIGHT" << std::endl;
+            string a_string = to_string(a);
+            string filename = "ray/output";
+            filename.append(a_string);
+            filename.append(".ppm");
+            a++;
+            window.savePPM(filename);
+            cout<<a<<" "<<"image saved"<<endl;
+            //window.saveBMP("output.bmp");
+        }else if (event.key.keysym.sym == SDLK_d){
+			//std::cout << "RIGHT" << std::endl;
 			window.clearPixels();
             boxCameraPosition.x = boxCameraPosition.x - move;
 			//rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
             ray(window, focalLength, scalar, boxCameraPosition, l, lightPosition, cameraOrientation);
-        }else if (event.key.keysym.sym == SDLK_UP){
-			std::cout << "UP" << std::endl;
+            //wireFrameRender(window, boxCameraPosition, l, focalLength, cameraOrientation);
+        }else if (event.key.keysym.sym == SDLK_a){
+			//std::cout << "left" << std::endl;
 			window.clearPixels();
-            boxCameraPosition.y = boxCameraPosition.y - move;
+            boxCameraPosition.x = boxCameraPosition.x + move;
 			//rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
             ray(window, focalLength, scalar, boxCameraPosition, l, lightPosition, cameraOrientation);
-        }else if (event.key.keysym.sym == SDLK_DOWN) {
+            //wireFrameRender(window, boxCameraPosition, l, focalLength, cameraOrientation);
+        }else if (event.key.keysym.sym == SDLK_s) {
 			window.clearPixels();
-			std::cout << "DOWN" << std::endl;
+			//std::cout << "DOWN" << std::endl;
             boxCameraPosition.y = boxCameraPosition.y + move;
 			//rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
             ray(window, focalLength, scalar, boxCameraPosition, l, lightPosition, cameraOrientation);
-
-        }else if (event.key.keysym.sym == SDLK_a){
-			std::cout << "FORWARD" << std::endl;
+            //wireFrameRender(window, boxCameraPosition, l, focalLength, cameraOrientation);
+        }else if (event.key.keysym.sym == SDLK_w) {
+            window.clearPixels();
+            //std::cout << "up" << std::endl;
+            boxCameraPosition.y = boxCameraPosition.y - move;
+            //rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
+            ray(window, focalLength, scalar, boxCameraPosition, l, lightPosition, cameraOrientation);
+            //wireFrameRender(window, boxCameraPosition, l, focalLength, cameraOrientation);
+        }else if (event.key.keysym.sym == SDLK_z){
+			//std::cout << "FORWARD" << std::endl;
 			window.clearPixels();
             boxCameraPosition.z = boxCameraPosition.z - move;
-			rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
-		}else if (event.key.keysym.sym == SDLK_b){
-			std::cout << "BACKWARD" << std::endl;
+            ray(window, focalLength, scalar, boxCameraPosition, l, lightPosition, cameraOrientation);
+            //rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
+            //wireFrameRender(window, boxCameraPosition, l, focalLength, cameraOrientation);
+        }else if (event.key.keysym.sym == SDLK_x){
+			//std::cout << "BACKWARD" << std::endl;
 			window.clearPixels();
             boxCameraPosition.z = boxCameraPosition.z + move;
-			rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
-		}else if (event.key.keysym.sym == SDLK_x){
-			std::cout << "ROTATION OF X" << std::endl;
+            ray(window, focalLength, scalar, boxCameraPosition, l, lightPosition, cameraOrientation);
+            //rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
+
+            //wireFrameRender(window, boxCameraPosition, l, focalLength, cameraOrientation);
+        }else if (event.key.keysym.sym == SDLK_c){
+			//std::cout << "ROTATION OF X" << std::endl;
 			window.clearPixels();
-			glm::mat3x3 x = {{1,0,0},{0,cos(0.1),-sin(0.1)},{0,sin(0.1),cos(0.1)}};
+			glm::mat3x3 x = {{1,0,0},{0,cos(0.1),sin(0.1)},{0,-sin(0.1),cos(0.1)}};
             boxCameraPosition = x * boxCameraPosition;
             cameraOrientation = x * cameraOrientation;
 			//rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
             ray(window, focalLength, rayTraceScalar, boxCameraPosition, l, lightPosition, cameraOrientation);
-        }else if (event.key.keysym.sym == SDLK_y) {
-			std::cout << "ROTATION OF Y" << std::endl;
+            //wireFrameRender(window, boxCameraPosition, l, focalLength, cameraOrientation);
+        }else if (event.key.keysym.sym == SDLK_f){
+            //std::cout << "ROTATION OF X" << std::endl;
+            window.clearPixels();
+            glm::mat3x3 x = {{1,0,0},{0,cos(0.1),-sin(0.1)},{0,sin(0.1),cos(0.1)}};
+            boxCameraPosition = x * boxCameraPosition;
+            cameraOrientation = x * cameraOrientation;
+            //rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
+            ray(window, focalLength, rayTraceScalar, boxCameraPosition, l, lightPosition, cameraOrientation);
+            //wireFrameRender(window, boxCameraPosition, l, focalLength, cameraOrientation);
+        }else if (event.key.keysym.sym == SDLK_g){
+            //std::cout << "ROTATION OF Y" << std::endl;
+            window.clearPixels();
+            glm::mat3x3 x = {{cos(0.1),0,-sin(0.1)},{0,1,0},{sin(0.1),0,cos(0.1)}};
+            boxCameraPosition = x * boxCameraPosition;
+            cameraOrientation = x * cameraOrientation;
+            //cout<<boxCameraPosition.z<<endl;
+            //rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
+            ray(window, focalLength, rayTraceScalar, boxCameraPosition, l, lightPosition, cameraOrientation);
+            //wireFrameRender(window, boxCameraPosition, l, focalLength, cameraOrientation);
+        }else if (event.key.keysym.sym == SDLK_v) {
+			//std::cout << "ROTATION OF Y" << std::endl;
 			window.clearPixels();
 			glm::mat3x3 x = {{cos(0.1),0,sin(0.1)},{0,1,0},{-sin(0.1),0,cos(0.1)}};
             boxCameraPosition = x * boxCameraPosition;
             cameraOrientation = x * cameraOrientation;
-            cout<<boxCameraPosition.z<<endl;
+            //cout<<boxCameraPosition.z<<endl;
 			//rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
             ray(window, focalLength, rayTraceScalar, boxCameraPosition, l, lightPosition, cameraOrientation);
+            //wireFrameRender(window, boxCameraPosition, l, focalLength, cameraOrientation);
         }else if(event.key.keysym.sym == SDLK_j){
-			std::cout << "RAY TRACE" << std::endl;
+			//std::cout << "RAY TRACE" << std::endl;
 			window.clearPixels();
 			ray(window, focalLength, rayTraceScalar, boxCameraPosition, l, lightPosition, cameraOrientation);
 		}else if(event.key.keysym.sym == SDLK_9){
             std::cout << "RAY TRACE" << std::endl;
             window.clearPixels();
-            boxCameraPosition.x = boxCameraPosition.x + move;
+            sphereMove = 0.1;
             ray(window, focalLength, rayTraceScalar, boxCameraPosition, l, lightPosition, cameraOrientation);
         }else if(event.key.keysym.sym == SDLK_0){
             std::cout << "RAY TRACE" << std::endl;
             window.clearPixels();
-            boxCameraPosition.x = boxCameraPosition.x - move;
+            sphereMove = -0.1;
+            //boxCameraPosition.x = boxCameraPosition.x - move;
             ray(window, focalLength, rayTraceScalar, boxCameraPosition, l, lightPosition, cameraOrientation);
-        }else if(event.key.keysym.sym == SDLK_h){
-			std::cout << "AMBIENT LIGHT ADD" << std::endl;
+            //wireFrameRender(window, boxCameraPosition, l, focalLength, cameraOrientation);
+            //rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
+        }else if(event.key.keysym.sym == SDLK_1){
+			//std::cout << "draw Flat sphere" << std::endl;
 			window.clearPixels();
-			if(ambientStrength>=1) ambientStrength = 0.1;
-			ambientStrength += move;
-			ray(window, focalLength, scalar, boxCameraPosition, l, lightPosition, cameraOrientation);
-		}else if(event.key.keysym.sym == SDLK_1){
-			std::cout << "draw Flat sphere" << std::endl;
-			window.clearPixels();
-            drawFlatSphere(window, focalLength, scalar, sphereCameraPosition, sphere, sphereLightPosition, cameraOrientation);
+//            lightPosition.x += 0.1;
+            if(ambientStrength>=1) ambientStrength = 0.1;
+            ambientStrength += move;
+            ray(window, focalLength, rayTraceScalar, boxCameraPosition, l, lightPosition, cameraOrientation);
+            //drawFlatSphere(window, focalLength, scalar, sphereCameraPosition, sphere, sphereLightPosition, cameraOrientation);
 		}else if (event.key.keysym.sym == SDLK_2){
-            std::cout << "draw Goraud sphere" << std::endl;
+            //std::cout << "draw Flat sphere" << std::endl;
             window.clearPixels();
-            drawGouraudSphere(window, focalLength, scalar, sphereCameraPosition, sphere, sphereLightPosition, cameraOrientation);
+            lightPosition.x += 0.1;
+            ray(window, focalLength, rayTraceScalar, boxCameraPosition, l, lightPosition, cameraOrientation);
+            //drawFlatSphere(window, focalLength, scalar, sphereCameraPosition, sphere, sphereLightPosition, cameraOrientation);
         }else if (event.key.keysym.sym == SDLK_3){
             std::cout << "draw Phone sphere" << std::endl;
             window.clearPixels();
@@ -1449,11 +1500,7 @@ void handleEvent(SDL_Event event, DrawingWindow &window) {
             ambientStrength += move;
             drawGouraudBox(window, focalLength, rayTraceScalar, boxCameraPosition, l, lightPosition, cameraOrientation);
         }else if(event.key.keysym.sym == SDLK_6){
-            std::cout << "draw phone box" << std::endl;
-            window.clearPixels();
-            if(ambientStrength>=1) ambientStrength = 0.1;
-            ambientStrength += move;
-            drawPhoneBox(window, focalLength, rayTraceScalar, boxCameraPosition, l, lightPosition, cameraOrientation);
+            sphereMove = 0.0;
         }else if(event.key.keysym.sym == SDLK_7){
             std::cout << "draw phone box light move" << std::endl;
             window.clearPixels();
@@ -1504,17 +1551,19 @@ void handleEvent(SDL_Event event, DrawingWindow &window) {
 			//affineTransformation(window, canvasT, CanvasPoint(300, 230), affineT, textureFile);
 			textureMapper(window,canvasT,affineT,textureFile);
 			//drawTriangle(window,canvas);
-		}else if (event.key.keysym.sym == SDLK_p){
-			window.clearPixels();
-			pointCloud(window, boxCameraPosition, focalLength, l);
-		}else if(event.key.keysym.sym == SDLK_w){
+		}
+//        else if (event.key.keysym.sym == SDLK_p){
+//			window.clearPixels();
+//			pointCloud(window, boxCameraPosition, focalLength, l);
+//		}
+        else if(event.key.keysym.sym == SDLK_q){
 			window.clearPixels();
 			wireFrameRender(window, boxCameraPosition, l, focalLength, cameraOrientation);
 		}else if(event.key.keysym.sym == SDLK_r){
 			window.clearPixels();
 			rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
             //cout<<zBuffer[3][4]<<'/'<<zBuffer[5][1] <<endl;
-        }else if (event.key.keysym.sym == SDLK_c) {
+        }else if (event.key.keysym.sym == SDLK_p) {
             zBuffer();
 			window.clearPixels();
             boxCameraPosition = {0, 0, 4};
@@ -1524,8 +1573,8 @@ void handleEvent(SDL_Event event, DrawingWindow &window) {
             cameraOrientation ={{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 		}
 	}else if (event.type == SDL_MOUSEBUTTONDOWN) {
-		window.savePPM("output.ppm");
-		window.saveBMP("output.bmp");
+            window.savePPM("output.ppm");
+            window.saveBMP("output.bmp");
 	}
 }
 
@@ -1550,13 +1599,21 @@ int main(int argc, char *argv[]) {
 				window.clearPixels();
 				press_X = false;
 			}
+//            zBuffer();
+//			window.clearPixels();
+//			glm::mat3x3 x = {{1,0,0},{0,cos(0.01),-sin(0.01)},{0,sin(0.01),cos(0.01)}};;
+//            boxCameraPosition = x * boxCameraPosition;
+//            cameraOrientation = x * cameraOrientation;
+//			//cameraOrientation = lookAt(boxCameraPosition);
+//			//rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
+//            ray(window, focalLength, 50, boxCameraPosition, l, lightPosition, cameraOrientation);
             zBuffer();
-			window.clearPixels();
-			glm::mat3x3 x = {{1,0,0},{0,cos(0.01),-sin(0.01)},{0,sin(0.01),cos(0.01)}};;
+            window.clearPixels();
+            glm::mat3x3 x = glm::mat3(cos(0.01),0,-sin(0.01),0,1,0,sin(0.01),0,cos(0.01));
             boxCameraPosition = x * boxCameraPosition;
-            cameraOrientation = x * cameraOrientation;
-			//cameraOrientation = lookAt(boxCameraPosition);
-			//rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
+            //cameraOrientation = x*cameraOrientation;
+            cameraOrientation = lookAt(boxCameraPosition);
+            //rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
             ray(window, focalLength, 50, boxCameraPosition, l, lightPosition, cameraOrientation);
 
         }else if(press_Y){
@@ -1569,13 +1626,12 @@ int main(int argc, char *argv[]) {
 			}
             zBuffer();
 			window.clearPixels();
-			glm::mat3x3 x = glm::mat3(cos(0.01),0,-sin(0.01),0,1,0,sin(0.01),0,cos(0.01));
+			glm::mat3x3 x = glm::mat3(cos(0.01),0,sin(0.01),0,1,0,-sin(0.01),0,cos(0.01));
             boxCameraPosition = x * boxCameraPosition;
 			//cameraOrientation = x*cameraOrientation;
 			cameraOrientation = lookAt(boxCameraPosition);
             //rasterisedRender(window, l, boxCameraPosition, focalLength, cameraOrientation);
            ray(window, focalLength, 50, boxCameraPosition, l, lightPosition, cameraOrientation);
-
         }
 		//rasterisedRender(window,l,boxCameraPosition,2.0,cameraOrientation);
 		// Need to render thse frame at the end, or nothing actually gets shown on the screen !
